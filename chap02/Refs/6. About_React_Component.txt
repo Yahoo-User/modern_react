@@ -1,0 +1,254 @@
+*************************************
+* React Components                  *
+*************************************
+
+1. React Component is the core feature with React Virtual DOM, React JSX.
+    - Can be divided into two-types React Components:
+        (1) Class Type Component
+        (2) Function Type Component
+
+
+2. What is a Component ?
+    - This is derived from the "SmallTalk" language which is a originator of an OOP language.
+    - A component is the class that process screen UI.                                          <--- ***
+    - According to the theory of "SmallTalk" designation, 
+      The component must be a "class" which implemented by MVC (Model-View-Controller) pattern. <--- ***
+    
+        (1) Model       - App's Data
+        (2) View        - Rendering a Model to the Screen
+        (3) Controller  - Inputed from User's Keyboard & Mouse, and Apply it to the Model & View
+
+    - The concept of "SmallTalk" component is very general.
+    - In deed, Almost programming languages are borrowing & using from the concept of "SmallTalk" component.
+    - The React component is also equals to the concept of "SmallTalk" component.
+
+
+3. @since React v16.8, New mechanism, called "React Hook" appeared.                             <--- ***
+    - Thus, the React component is *NOT* just a class from the OOP,
+      *But* could be implemented in simple way of "function" form.                              <--- ***
+    - "React Team" recommends the Function type Component with "React Hook".                    <--- ***
+
+
+4. React Components & User-defined Components
+    - In React, The components means that have two types of                                     <--- ***
+
+        (1) React Components That Provided by React Framework
+            a. Name starts with lowercase like, "div", "h1".                                    <--- ***
+            b. React provides components according to each HTML5 tags:                          <--- ***
+                const h1 = <h1>Hello, World</h1>
+
+                Here, "<h1>" is the React component provided by React.                          <--- ***
+            c. When creating a React component by "React.createElement" method,
+               You have to input a string like "h1" as a React component type.                  <--- ***
+
+                const h1 = React.createElement("h1", null, "Hello, World")
+            d. React design this mechanism to *NOT* import each React component according to
+               each HTML5 tag:
+
+                import { h1, h2, div, span } from "react"           // XX
+
+            e. In React, Class type component type is "ComponentClass<P>".
+                 
+        (2) User-defined Components
+            a. Name starts with uppercase like, "MyComponent" with "Camel-Case Notation".       <--- ***
+            b. The function prototype of "React.createElement" in 02-1 before:
+                
+                function createElement<P extends {}>(
+                    type        :                                                               <--- ***
+                        ① FunctionComponent<P>    |   (***)
+                        ② ComponentClass<P>       |   (***)
+                        ③ string,                     (***)
+                    props?      : Attributes & P | null,
+                    ...children : ReactNode[]
+                ): ReactElement<P>;
+
+                * Here, Type Parameter "P" is the head of "Property". (***)
+
+            c. In React, Function type component is "FunctionComponent<P>".
+
+
+5. Why implmented User-defined Components ?
+    - in 02-2, The following code:
+
+        // Create a React JSX Component
+        const rootVirtualDOM = (
+            <ul>
+            <li>
+                <a href="http://www.google.com" target="_blank" rel="noreferrer">
+                <p>Go to Google</p>
+                </a>
+            </li>
+            </ul>
+        )
+
+        * Because of the "JSX" codes, Source looks very complexed.  (***)
+
+    - Please move the above JSX codes to the "src/App.tsx" file like the below:
+            
+        // JSX.Element extends React.ReactElement<any, any>   <--- ***
+        // type ReactNode =                                   <--- ***
+        //        | ReactElement                              <--- ***
+        //        ...
+        function App(): JSX.Element {    // called, "Functional Component"
+            return (
+                <ul>
+                <li>
+                    <a href="http://www.google.com" target="_blank" rel="noreferrer">
+                    <p>Go to Google</p>
+                    </a>
+                </li>
+                </ul>
+            )
+        } // app
+
+        export default app
+
+    - As a result of the above source, the "src/index.tsx" source could be very simple respectively :
+
+        import ReactDOM from "react-dom/client"
+        import App from "./App"
+
+        /**
+         * -------------------------------------------------------------
+         * function createRoot(
+         *    ① container   : Element | DocumentFragment,
+         *    ② options?    : ReactDOM.RootOptions | undefined
+         * ): ReactDOM.Root
+         * -------------------------------------------------------------
+         * Replaces `ReactDOM.render` when the `.render` method is called and enables `Concurrent Mode`.
+         */
+        const root = ReactDOM.createRoot(document.querySelect("#root) as HTMLElement)
+
+        // const root: ReactDOM.Root                                                            <--- ***
+        // (method) ReactDOM.Root.render(children: React.ReactNode): void                       <--- ***
+        root.render(<App/>)                                                                     <--- ***
+
+    - The first reason to make an User-defined Component is that
+      If complex JSX codes should be moved to the other new React component like "App" (src/App.tsx),
+      The sources of the side that uses "App" could be made very simple.                        <--- ***
+
+    - The second reason to make an User-defined Component is that
+      The TypeScript codes & JSX sentences could be used together.                              <--- ***
+
+      Please refer to "6".
+
+    - React supports for the `properties` in the User-defined Component.                        <--- ***
+      To cutomize the contents of this component with provided `properties`. (***)
+
+
+6. To make a Class Type Component.
+    - In React, There are two-types components:                                                 <--- ***
+        (1) Class Type Component
+        (2) Function Type Component
+
+    - Class type component is of historical origin.
+    - In React, The class type component should be surely extended from "React.Component".      <--- ***
+
+        import React, { Component } from "react"                                                <--- ***
+
+        export default
+        class ClassComponent extends Component {...}                                            <--- ***
+
+    - The class type component which extended from "React.Component"
+      should have named, "render" method.                                                       <--- ***
+
+        a. This "render" method must return one value of the following:                         <--- ***
+            ① null
+            ② Return a value of "React.createElement" method : 
+                "ReactElement<P>" : Type Parameter "P" is the head of "Property". (***)
+            ③ Virtual DOM through JSX sentences
+
+        b. Example:
+
+            import { Component } from "react"
+
+            class ClassComponent extends Component {
+                render() { return null }
+            } // end class
+
+            export default ClassComponent;
+
+    - Append not only "JSX" sentences, but also "TypeScript" codes to compliment in-sufficient logic
+      to the User-defined Type Component :
+
+      * To solve the problem which an Expression required appeared in 02-2:
+
+        import { Component } from "react"
+
+        export default class App extends Component {
+
+            // ---------------------
+            // 1st. method
+            // ---------------------
+            render() {
+                // Append in-sufficient logic by TypeScript
+                const isLoading = true                          <--- ***
+                if(isLoading) return <p>loading...</p>          <--- ***
+
+                return (
+                    <ul>
+                    <li>
+                        <a href="http://www.google.com" target="_blank" rel="noreferrer">
+                        <p>Go to Google</p>
+                        </a>
+                    </li>
+                    </ul>
+                )
+            } // render
+
+            // ---------------------
+            // 2nd. method
+            // ---------------------
+            render() {
+                // Append additional logic by typescript code.    <--- ***
+                const isLoading = false
+
+                const children = (
+                    <ul>
+                        <li>
+                        <a href="http://www.google.com" target="_blank" rel="noreferrer">
+                            <p>Go to Google</p>
+                        </a>
+                        </li>
+                    </ul>
+                )
+
+                // returns Virtual DOM by JSX using "Short-Circuiting Effect"
+                return (
+                <div>
+                    // ----------------- *** -----------------
+                    // The "undefined" or "null" vlaue is "valid" JSX sentences,
+                    // Because that JSX lexical analyzer just ignore this "null" or "undefined" value.
+                    // ---------------------------------------
+                    {/* Using "Short-Circuiting Effect" */}
+                    {isLoading && <p>Loading ... </p>}        {/* returns `undefined` if isLoading == false */}
+                    {!isLoading && <ul>{children}</ul>}       {/* returns `undefined` if isLoading == true */}
+                </div>
+                )
+            } // render
+
+            // ---------------------
+            // 3rd. method
+            // ---------------------
+            // The JSX sentence means just the return value of "React.createElement" method.    <--- ***
+            render() {
+                const isLoading = true
+                const children = isLoading ? <p>Loading ...</p> : (
+                    <ul>
+                        <li>
+                        <a href="http://www.google.com" target="_blank" rel="noreferrer">
+                            <p>Go to Google</p>
+                        </a>
+                        </li>
+                    </ul>
+                )
+
+                return div>{children}</div>
+            } // render
+        } // end class
+    
+
+
+
+
+

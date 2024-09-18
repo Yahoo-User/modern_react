@@ -1,0 +1,23 @@
+*************************************
+* import React from "react"         *
+* import ReactDOM from "react-dom"  *
+*************************************
+
+
+1. @Since React v17,
+    The Following Import Statement *NO* Required If Using React JSX Component.
+
+    // import React from "react"           <--- *** : NO Required
+
+
+2. @Since React v18,
+    The Following Import Statement Changed.
+
+    From) import ReactDOM from "react-com"
+
+                        ∇
+                        
+      To) import ReactDOM from "react-com/client"
+
+
+

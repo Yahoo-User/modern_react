@@ -1,0 +1,250 @@
+*******************************************************
+* 04-6. Understanding "useContext" React Hooks		  *
+*******************************************************
+
+
+01. The "context" is the powerful feature provided by React.
+
+
+02. The "context" is the root of many libraries like React Router, Redux, and so on.
+
+
+03. This chapter shows "context" and how to create a custom User-defined React hook.
+
+
+04. Create a Project
+
+
+05. What's the "context" ?
+
+	- The "component properties" is the mechanism used
+	  when the "parent" component transfers some information to the "child" component.		<--- ***
+
+	- Then, it's very complicated
+	  if the "parent" component transfers to the "grandson" or "great-grandson" as follows:	(***)
+
+								    (1. Setting shared data)
+		[ <parent_component> ─────────────────────┓
+										          ▼
+			[ <child_component shared_props={shared_props} /> ]
+			
+											(2. Setting shared data)
+							<child_component> ──────────┓
+														│
+									({shared_props}) ───▼───────────────────────▶ (Getting Shared Data)
+				[ <grandson_component shared_props={shared_props} /> ]
+			
+														(3. Setting shared data)
+									<grandson_component> ───────────┓
+																    │
+											  ({shared_props}) ─────▼────────────────────────▶ (Getting Shared Data)
+					[ <great_grandson_component shared_props={shared_props} /> ]
+
+
+06. React implements the "context" mechanism to resolve these complication.
+
+	- The "context" is comprised of
+		① "createContext"
+		② "useContext" React Hooks
+	  in React or React Natives.																	<--- ***
+
+	- The relationships between these two React hooks is as follows:
+
+						[[ The example of sharing data with the context ]]
+
+								   (*Parent* Component)
+	 	① "createContext" ──────▶ <Provider value={*Set Shared Data*} />
+
+										  (*Child* Component)
+										<    ② useContext     > ──────────▶  Getting Shared Data 
+
+												(*Grandson* Component)
+												<    ③ useContext     > ──────────▶  Getting Shared Data 
+
+														(*GreatGrandson* Component)
+														<    ④ useContext     > ──────────▶  Getting Shared Data
+
+																	...
+
+07. The React & React Natives code which use the "context" feature always uses
+	the component containing "Provider" in the name and custom hook in the form of "use+ContextName()".	<--- ***
+
+
+08. Understanding the "useContext" function
+
+	- To implement "context" feature, create a "context" object with "createContext" function
+	  provided by React package for the first time.														<--- ***
+
+	  ● Importing "createContext":
+
+	  	import react, {createContext} from "react"				// ***
+
+	- Then, In TypeScript, the "createContext" function must be invoked as following pattern:			<--- ***
+
+	  ● The pattern of invoking "createContext" function :												<--- ***
+
+	  	① type contextType = {
+				// Shared data properties 
+		   }
+
+		② const defaultContextValue: ContextType = {
+				// The initial values of shared data properties
+		   }
+
+		③ const SomeContext = createContext<ContextType>(defaultContextValue)
+
+
+09. Understanding The Break-Point Prefix of The Tailwind CSS
+
+	- This turn is to see the code of using "createContext" function,
+	  formerly undestand the prefix of break-point of Tailwind CSS
+
+	- Like not only Tailwind CSS, but also Bootstrap,
+	  Almost CSS framework represents the size of web page using "sm, md, lg, xl" and so on				<--- ***
+
+	  That is, the following keywords are used to use the "resposive design" features
+	  which CSS framework provides:
+
+		● The keywords like "size" which Tailwind CSS framework provides :								<--- ***
+
+			-----------------------------------------------------------------------------------------
+			   Keyword          Meaning               Min. Size              CSS @media Rule
+			-----------------------------------------------------------------------------------------
+				 sm				small					640px			@media (min-width:  640px)
+				 md				medium					768px			@media (min-width:  768px)
+				 lg				large				   1024px			@media (min-width: 1024px)
+				 xl				extra large			   1280px			@media (min-width: 1280px)
+				2xl				2 extra large		   1536px 			@media (min-width: 1536px)
+			-----------------------------------------------------------------------------------------
+
+	- The Break-Point & Break-Point Prefix
+
+		● For instance, Checking meaning of following "<img>" element's "className" property:
+
+			Example of the "breakpoint prefix"		(***)
+			
+				<img className="w-16 md:w-32 lg:w-48 />
+
+				① The "width" of web browser is 4rem, by default.
+				② If the "width" of web browser is greater than  "768px" 	is  8rem. (md:w-32)			<--- ***
+				③ If the "width" of web browser is greater than "1024px" 	is 12rem. (lg:w-48)			<--- ***
+
+		  is to set the size of "<img>" differently, according to the width of web browser.
+
+		  Here, 
+				① "md" 	prior the colon(:) 			is called, "breakpoint".							<--- ***
+				② "md:" prior the breakpoint("md") 	is called, "breakpoint prefix".						<--- ***
+
+
+10. Making "Responsive Context"
+
+	- In pevious 04-4 created, Using "useWindowResize" custom hook,
+	  Tt shows the width of web browser using "breakpoint" to the screen.
+
+	- First, create a "context" sub directory
+
+		> mkdir src/contexts
+		> cd contexts
+		> touch index.ts ResponsiveContext.tsx
+
+	- Write code into "src/contexts/ResponsiveContext.tsx" source:
+
+		import {createContext} from "react"
+
+		type ContextType {
+			breakpoint: string	// Shared data property
+		}
+
+		const defaultContextValue: ContextType = {
+			breakpoint: ''		// The initial value of shared data property
+		}
+
+		export
+		const ResponsiveContext = createContext<ContextType>(defaultContextValue)
+
+	- Export all from "src/contexts/ResponsiveContext.tsx" file in "index.ts" source.
+
+		export * from "./ResponsiveContext.tsx"
+
+
+11. The "Provider" Component Provided By "Context" Object.												<--- ***
+
+	- The "context" object created by invoking "createContext" function
+	  provides two components as follows:																<--- ***
+
+		① Provider	- The component which provides the features of "context".		   (***)
+		② Consumer	- The "class" component which want to use the features
+					   that "Provider" provides.								  		(***)
+
+	- But this book implements almost components as "functional" components.
+	  Thus, it's good to ignore "Consumer".				  								(***)
+
+	  The reason is why "functional" component unlike "class" component could 
+	  use more simple "useContext" hook than "Consumer".												<--- ***
+
+	- "Provider" component provides the "ProviderProps" property
+	  which have "value" and "children" properties as follows:
+
+			interface ProviderProps<T> {
+				value	 : T;
+				children?: ReactNode;
+			}
+
+		Here, 
+			① "T" type variable must be the same as "createContext<T>".						(***)
+			② "children" is the same the property of "children" studied in 02-4.			(***)
+			③ The value of "value" prop is the feature which "Provider" context provides.	(***)
+
+	- "Provider" component must definitely provide the value to "value" property.					<--- ****
+	  If "Provider" component do *NOT* provide the value of "value" property, an error triggered.
+
+	- Pitfall: 
+	
+		All context provider must declare at the top level of a component.							<--- ***
+
+	- Example: refer to the "ResponsiveContext.tsx" source
+
+		● The custom "ResponsiveProvider" component applys to the "src/App.tsx" source.
+
+	
+12. Understanding "useContext" React Hook.
+
+	- Now, Turn to implement "ResponsiveContextTest" component.
+
+	- The purpose of "useContext" React hook is to get the value of "value" prop of "Provider" component
+	  provided by "Context" object.																	<--- ***
+
+	- To use "useContext" React hook, Import as follows:
+
+		import {useContext} from "react"
+
+	- The "useContext" React hook is always to return value of "value" prop of "context provider".	<--- ***
+
+	  Thus, the previous "context provider" returns the "breakpoint" property value
+	  in the "value" prop of "context provider".													<--- ***
+
+	- The following source is to implement the "useResponsive custom hook" :
+
+		export
+		const useResponsive = () => {
+			const value = useContext(ResponsiveContext)			<--- ***
+
+			return value.breakpoint								<--- ***
+		} // useResponsive
+
+	- Example: 
+		● The example is the "src/contexts/ResponsiveContextTest.tsx" source.
+		● The example evaluates the "breakpoint" property value, according to Tailwind CSS's breakpoint prefix's pixel size,
+		  after getting the width of web page with the "useWindowResize" custom hook created in 04-4.
+		● Apply "useResponsive" custom hook created in previous to the "src/pages/ResponsiveContextTest.tsx" source.
+		  The "useResponsive" custom hook always returns "breakpoint" value.
+		  Thus, the "src/pages/ResponsiveContextTest.tsx" could be implemented as follows:
+
+		  Please refer to the "src/contexts/ResponsiveContextTest.tsx" source.
+
+
+
+		  
+
+
+	

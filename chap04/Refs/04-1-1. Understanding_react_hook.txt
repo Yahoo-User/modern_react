@@ -1,0 +1,423 @@
+*************************************
+* 04-1-1. Understanding React Hook  *
+*************************************
+
+01. React framework provides both React Hook and Custom Hook (User-defined Hook).
+
+
+02. What is React Hook ?
+    - Released from React v16.8.0 in 2019.02.
+
+    - A series of functions started with prefix, "use-"
+      like "useState", "useEffect".                                     <--- ***
+
+    - Definitely, React Hook must be used in functional component.      <--- ***
+
+    - Categories with the purpose of React Hooks:
+
+        (1) Component Data Managment:
+            ① useMemo
+            ② useCallback
+            ③ useState
+            ④ useReducer
+
+        (2) Corresponding to the Component Lifecycle:
+            ① useEffect
+            ② useLayoutEffect
+
+        (3) Invoke Component Methods:
+            ① useRef
+            ② useImperativeHandle
+
+        (4) Share information among Components:
+            ① useContext
+
+
+03. Birth Background of React Hook
+
+    - @Until before React v16.8.0, User-defined component is the class-based component
+      that extends "React.Component" and implments "render" method.             <--- ***
+
+        Example:
+
+            import React from "react"
+            
+            export default class MyComponent extends React.Component {
+                render() { return <div /> }
+            } // end class
+
+
+    - But class-based component is *NOT* intuitive,
+      becase that many features are hidden in it.                               <--- ***
+
+        ① "this.props" is *NOT* implemented by class component,
+            thus it's some strange. (***)
+        ② When must use "this.state", When must use "this.props",
+            these are are confused. (***)
+
+        Example:   
+            // Because that there are many features in component class, it's Not intuitive.
+
+            import React from "react"
+
+            class MyComponent extends React.Component {
+                state = {}                                  <--- ***
+
+                render() {
+                    const state = this.state                <--- ***
+                    const props = this.props                <--- ***
+
+                    return <></>
+                }
+            } // end class
+
+    - Also, React component's lifecycle methods are many,
+      Thus, 
+      
+        ③ It's difficult to known when must use each lifecycle method 
+        ④ and what is the meaning & exact implement method of it.                       <--- ***
+        ⑤ and The methods to re-use of some code inside the component are im-proper.    <--- ***
+
+        Example:
+
+            class MyComponent extends React.Component {
+                state = {}
+
+                // Lifecycle Methods. (***)
+                componentWillReceiveProps() {}
+                componentWillMount() {}
+                componentWillUnmount() {}
+                componentDidMount() {}
+                componentDidUpdate() {}
+
+                render() {
+                    const state = this.state
+                    const props = this.props
+
+                    return <></>
+                }
+
+            } // end class
+
+    - The purpose of React Hook:
+
+      To overcome complexity and intuition when creating a class component.             <--- ***
+
+
+04. Because of the above reasons, React Team recommends that
+    when implementing Ract component, please use "functional component + React Hooks".  <--- ***
+
+
+05. The Pattern Of React Hooks And Dependency List.
+
+    - React Hook functions could be divided into 2-types:
+
+        (1) In case that the number of parameters in functional component is 1 :        <--- ***
+            ① useState
+            ② useRef
+            ③ useImperativeHandle
+            ④ useContext
+
+        (2) In case that the number of parameters in functional component is 2 :        <--- ***
+            ① useMemo
+            ② useCallback
+            ③ useReducer
+            ④ useEffect
+            ⑤ useLayoutEffect
+
+    - The code pattern when the number of parameters in functional component is 1 : <--- ***
+
+        ① React_Hook_Function<TypeOfValue>(value)           (***)
+
+        ② React_Hook_Function<TypeOfValue | null>(value)    (***)
+           ○ If a value could be `null`, use the above pattern.
+
+        ③ Example: "useRef"
+           ○ const today: Date = useRef<Date>(new Date)      // Without Type Inference
+           ○ const today = useRef(new Date)                  // With Type Inference
+
+    - The code pattern when the number of parameters in functional component is 2 : <--- ***
+
+        ① React_Hook_Function<TypeOfValue>(CB, DL)          (***)
+           ○ Here, CB: CallBack, DL : Dependency List
+           ○ DL (Dependency List)                 
+             An array of items that are comprised of these values or functions
+             when the variable or function value used in CB(CallBack) are inconstant and changeable,
+           ○ React framework apples updated value to the CB(CallBack) by refreshing CB(CallBack)
+             just when one of items in DL(Dependency List) might be changed.   (***)
+           ○ If the DL is an empty array, CB invoked *ONCE*.                   (***)
+              
+        ② Example: "useEffect"
+           ○ useEffect(() => {}, [])
+           ○ In the above code,
+             - CB(Callback) function implemented by the simplest function, "() => {}"
+             - DL(Dependency List) must be an Array.
+               This empty array meant to be no mutable variables or functions.
+
+
+06. "setInterval" JavaScript API
+
+    - JavaScript provides "setInterval(callback, interval_to_update)" function by default.
+    - This function invokes "callback" by each "interval".
+    - The usage of "setInterval" function:
+
+        const id = setInterval(callback, interval_to_update)
+        callback = () => {}
+
+    - This returns "id".
+    - If the callback *NOT* invoked any more,
+      Please use "clearInterval" function provided by default in JavaScript.
+    - If No invoking "clearInterval" function when ends "setInterval",
+      System memory leak might be occurred.
+
+      Thus, Not any more invoking the callback by interval, call "clearInterval" definitely.
+
+        clearInterval(id_to_be_retured_from_setInterval)
+
+    - Example: "Clock"
+
+        let now = new Date
+        const interval = 1000   // In milliseconds
+
+        const id = setInterval(() => {
+            now = new Date
+        }, interval)
+
+        // If terminating "setInterval",
+        clearInterval(id)
+              
+
+07. Using "setInterval" API in a React Component
+
+    - If "App" component shows updated current date & time with "setInterval" api,
+      The Invoking "setInterval" api by *ONCE* must be done
+      when rendering the "App" component for the first time.        (***)
+
+    - React Hook, "useEffect" might accords with the above purpose. (***)
+
+    - Example: The code pattern of applying updated time to the screen
+
+        export default
+        function App() {
+            let now = new Date
+
+            const interval = 1000 * 1
+            const CB: () => void = () => {
+                ① now = new Date    // Update current clock.
+                ② forceUpdate()     // It's required to apply updated clock to the screen.
+            } // CB
+
+            const id = setInterval(CB, interval)
+
+            return <Clock today = { now } />
+        } // App
+
+      
+08. How to to implement a Clock using a "useEffect" Hook in "App" component.        // XX : Bug & Warnings 
+
+    - Step1. Import "useEffect" Hook
+
+        import { useEffect } from "react"
+
+    - Step2. Understanding the usage of "useEffect" Hook
+
+        ○ Usage: useEffect(CB, DL)  // CB : () => void
+
+        ○ This hook re-invokes "CB" whenever any of conditions existed in "DL" might be fullfilled.     <--- ***
+
+        ○ It you want to invoke "CB" *ONCE* when *creating* the React component for the first time,
+          The "DL" must be an empty array, "[]".                                                        <--- ***
+
+            useEffect(CB,[]):  () => void         // CB invoked *ONCE*, CB: () => void
+
+        ○ This hook could return a function (signature: () => void)
+          when the React component *Destroyed*.                                                         <--- ***
+
+            useEffect(() => {
+                // Executed *ONCE* when the React component created for the first time.
+                ...
+
+                // Executed *ONCE* when the React component destroyed lastly.
+                return () => {}     // Signature: () => void
+            }, []): () => void      // Returns a function: () => void
+
+    - Step3. Example code to implement an updatable "Clock"
+
+        /**
+        * ------------------------------------------------------------------
+        * useEffect(
+        *      // 1. type EffectCallback = () => void | Destructor;                   (***)
+        *      // 2. type Destructor = () => void | { [UNDEFINED_VOID_ONLY]: never }; (***)
+        *      effect: React.EffectCallback,
+        *
+        *      // 3. type DependencyList = readonly unknown[];                        (***)
+        *      deps?: React.DependencyList | undefined
+        * ): void
+        * ------------------------------------------------------------------
+        * import { useEffect } from "react"
+        * ------------------------------------------------------------------
+        * Accepts a function that contains imperative, possibly effectful code.
+        * 
+        * @param effect - Imperative function that can return a "cleanup" function.   (***)
+        * @param deps   - If present, effect will only activate if the values in the list change.   (***)
+        * @version      - 16.8.0
+        * 
+        * @see          - https://react.dev/reference/react/useEffect 
+        */
+        export default
+        function App() {
+            let now = new Date
+
+            // const DL: readonly unknown[] = []        // Related with Warning 2
+
+            useEffect(() => { // Invoke "setInterval" by *ONCE* with an DL(empty array)     <--- ***
+                // ----------------------
+                // Executed *ONCE* When this React component is created for the first time. <--- *** : ①
+                // ----------------------
+                
+                /* --- WARNING 1 --- *
+                * Assignments to the 'now' variable from inside React Hook "useEffect" will be lost after each render.
+                * To preserve the value over time, store it in a "useRef" Hook and keep the mutable value in the ".current" property.
+                * Otherwise, you can move this variable directly inside "useEffect". */
+
+                const duration = 1000 * 1       // In milliseconds.
+                const id = setInterval(() => {
+                    now = new Date()            // Related with Warning 1 and 3             <--- *** : ②
+                    console.log("\t+ now:", now.toLocaleTimeString())
+                }, duration)
+
+                // ----------------------
+                // Executed *ONCE* to return a function of () => void 
+                // When the React component will be destroyed for the last time.            <--- *** : ③
+                // ----------------------
+                return () => clearInterval(id)
+            },
+                /* --- WARNING 2 --- *
+                 * React Hook "useEffect" was passed a dependency list that is not an "array literal".
+                 * This means we can't statically verify whether you've passed the correct dependencies. */
+                
+                // DL       // Warning 2 by "const DL: readonly unknown[] = []"
+                []          // Solving the Warning 2                                        <--- *** : ④
+            )
+
+            return <></>
+        } // App
+
+      
+09. How to to implement a Clock with "useRef" and "useEffect" Hooks in "App" component. <--- ***: XX : Bug
+
+    - Step1. Import "useRef" hook
+
+        import type { MutableRefObject  } from "react"
+        import { useRef, useEffect } from "react"
+
+    - Step2. implement an updatable "Clock" using "useRef", "useEffect" hook, 
+             Instead of "useEffect".
+
+        /**
+        * ------------------------------------------
+        * useRef<T>(initialValue: T): React.MutableRefObject<T> (+2 overloads)
+        * import useRef
+        * ------------------------------------------
+        * interface MutableRefObject<T> {
+        *      current: T;
+        * }
+        * ------------------------------------------
+        * useRef returns a "mutable ref object" whose ".current" property is initialized to the passed argument (initialValue).
+        * The returned object will persist for the full lifetime of the component.
+        * 
+        * Note that "useRef()"" is useful for more than the "ref" attribute.
+        * It’s handy for keeping any mutable value around similar to how you’d use instance fields in classes.
+        * 
+        * @version — 16.8.0
+        * @see — https://react.dev/reference/react/useRef
+        */
+
+        export default
+        function App() {
+            let today: MutableRefObject<Date> = useRef<Date>(new Date())
+
+            useEffect(() => {
+                console.debug(">>> useEffect() invoked.")
+
+                // ----------------------
+                // Executed *ONCE* When this React component is created for the first time.
+                // ----------------------
+                const id = setInterval(() => {
+                    today.current = new Date()
+                    console.log("\t+ today.current:", today.current.toLocateTimeString())
+                }, 1000 * 1)
+
+                // ----------------------
+                // Executed *ONCE* to return a function of () => void When the React component will be destroyed.
+                // ----------------------
+                return () => clearInterval(id)
+            }, [])
+
+            // ------------------------------------
+
+            return <Clock today = { today.current } />
+        } // App
+
+        ○ Solving all warnings 1, 2, 3 and updated current time to be saved.
+          But until now, *NOT* refresh screen to update current time.               <--- ***
+
+        ○ Reason: "useRef" hook would *NOT* re-render the React component.          <--- ***
+
+      
+10. How to to implement a Clock with "useState" and "useEffect" Hooks in "App" component. <--- ***: OK
+
+    - The "useState" React Hook is like "useRef" but *Re-render* the React Component. (***)
+
+        -------------------------------
+        The usage of "useState" Hook:
+        -------------------------------
+
+        const [currentValue, setter] = useState(initialValue)
+        setter = (newValue) => void
+
+        ○ "useState" returns "setter".
+        ○ "setter" automatically re-renders the component,
+          When "currentValue" changed to "newValue".                <--- ***
+
+    - Step1. Import "useState" Hook
+
+        import { useState } from "react"
+
+    - Step2. Using "useState" Hook, implement a clock
+
+        import "./App.css"
+        import Clock from "./Clock"
+
+        import { useEffect, useState } from "react"
+
+        export default
+        function App() {
+            const [ today, setToday ] = useState(new Date())
+
+            useEffect(() => {
+                // ----------------------
+                // Executed *ONCE*, When this React component is created for the first time.
+                // ----------------------
+                const duration = 1000 * 1
+
+                const id = setInterval(() => {
+                    // "setter" automatically re-renders the component
+                    setToday(new Date())    // Change "currentValue" to "newValue"
+                    console.log("\t+ today:", today.toLocateTimeString())
+                }, duration)
+                        
+                // ----------------------
+                // Executed *ONCE* to return a function of () => void,
+                // When the React component will be destroyed.
+                // ----------------------
+                return () => clearInterval(id)
+            }, [])
+
+            // ------------------------------------
+
+            return <Clock today = { today } />
+        } // App
+        
+
+

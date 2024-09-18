@@ -1,0 +1,287 @@
+*******************************************************
+* 05-4. Implementing Trelldo to Copy                  *
+*******************************************************
+
+01. Now, Making App Acting like the Trelldo which the Atlassian Company Provides
+
+  ■ The Trelldo is a web-based project management software that many developers use.
+    ○ This act based on the "Kanban Board" in way of drag & drop
+
+
+02. Creating a React Project.
+
+  ■ Create a project following the commands:
+
+    ○ @babel/plugin-transform-private-property-in-object: This plugin transforms checks for a private property in an object
+    ○ @babel/plugin-proposal-private-property-in-object: This plugin transforms checks for a private property in an object
+                  npm WARN deprecated "@babel/plugin-proposal-private-property-in-object@7.21.11": 
+                      This proposal has been merged to the ECMAScript standard and thus this plugin is no longer maintained.
+                      Please use "@babel/plugin-transform-private-property-in-object" instead.
+    ○ chance: Utility library to generate anything random
+    ○ @types/chance: TypeScript definitions for chance
+    ○ luxon: Immutable date wrapper
+    ○ @types/luxon: TypeScript definitions for luxon
+    ○ @fontsource/material-icons: Self-host the Material Icons font in a neatly bundled NPM package.
+    ○ @kfonts/d2coding: D2Coding typeface
+    ○ postcss: Tool for transforming styles with JS plugins
+    ○ autoprefixer: Parse CSS and add vendor prefixes to CSS rules using values from the "Can I Use" website
+    ○ tailwindcss: A utility-first CSS framework for rapidly building custom user interfaces.
+    ○ daisyui: Tailwind CSS components
+    ○ redux: Predictable state container for JavaScript apps
+    ○ @reduxjs/toolkit: The official, opinionated, batteries-included toolset for efficient Redux development
+    ○ react-redux: Official React bindings for Redux
+    ○ redux-logger: logger for Redux
+    ○ @types/redux-logger: TypeScript definitions for redux-logger
+    ○ redux-thunk: thunk middleware for Redux.
+    ○ @types/redux-thunk: Stub TypeScript definitions entry for Redux Thunk, which provides its own types definitions.
+                          DEPRECATED!! - This is a stub types definition for Redux Thunk (https://github.com/gaearon/redux-thunk).
+                          Redux Thunk provides its own type definitions, so you don't need @types/redux-thunk installed!
+    ○ react-dnd: Drag and Drop for React
+    ○ @types/react-dnd: Stub TypeScript definitions entry for react-dnd, which provides its own types definitions.
+                        DEPRECATED!! - This is a stub types definition.
+                        "react-dnd" provides its "own" type definitions, so you don't need this installed.
+    ○ react-dnd-html5-backend: HTML5 backend for React DnD
+    ○ react-beautiful-dnd: Beautiful and accessible drag and drop for lists with React
+    ○ @types/react-beautiful-dnd: TypeScript definitions for react-beautiful-dnd
+    
+    > npm ls -g --depth=0
+    C:\app\scoop\persist\nvm\nodejs\nodejs -> .\
+    +-- corepack@0.17.0
+    +-- npm@8.19.4
+    +-- @types/node@20.9.2
+    +-- ts-node@10.9.1
+    `-- typescript@5.3.2
+
+    ------------------
+
+    > git config --global user.name "Yahoo-User"                          <--- ***: required: when creating local git repository
+    > git config --global user.email "cherryneo@yahoo.co.kr"              <--- ***: required: when creating local git repository
+
+    > cd ch05_4
+
+    > npx create-react-app . --template typescript
+    > npm i -D @babel/plugin-transform-private-property-in-object         <--- ***: required in case of npm test
+    > npm i -D @babel/plugin-proposal-private-property-in-object          <--- ***: required in case of npm run build
+
+    > npm i chance luxon
+    > npm i -D @types/chance @types/luxon
+
+    > npm i @fontsource/material-icons @kfonts/d2coding
+
+    > npm i -D postcss autoprefixer tailwindcss daisyui
+
+    > npm i redux @reduxjs/toolkit react-redux
+
+    > npm i redux-logger redux-thunk                                    
+    > npm i -D @types/redux-logger                                    <--- ***: redux-thunk already includes type definition
+
+    > npm i react-dnd react-dnd-html5-backend                         <--- ***: react-dnd already includes type definition
+
+    > npm i react-beautiful-dnd                                       <--- ***
+    > npm i -D @types/react-beautiful-dnd                             <--- ***
+
+    > npm doctor
+    ...
+
+    > npm ls --depth 0
+    05_4@0.1.0 C:\app\rt_workspace\modern_react\chap05\05_4
+    +-- @babel/plugin-proposal-private-property-in-object@7.21.11
+    +-- @babel/plugin-transform-private-property-in-object@7.23.4
+    +-- @fontsource/material-icons@5.0.11
+    +-- @kfonts/d2coding@0.1.3
+    +-- @reduxjs/toolkit@2.0.1
+    +-- @testing-library/jest-dom@5.17.0
+    +-- @testing-library/react@13.4.0
+    +-- @testing-library/user-event@13.5.0
+    +-- @types/chance@1.1.6
+    +-- @types/jest@27.5.2
+    +-- @types/luxon@3.3.7
+    +-- @types/node@16.18.69
+    +-- @types/react-beautiful-dnd@13.1.8
+    +-- @types/react-dom@18.2.18
+    +-- @types/react@18.2.46
+    +-- @types/redux-logger@3.0.12
+    +-- autoprefixer@10.4.16
+    +-- chance@1.1.11
+    +-- daisyui@4.4.24
+    +-- luxon@3.4.4
+    +-- postcss@8.4.32
+    +-- react-beautiful-dnd@13.1.1
+    +-- react-dnd-html5-backend@16.0.1
+    +-- react-dnd@16.0.1
+    +-- react-dom@18.2.0
+    +-- react-redux@9.0.4
+    +-- react-scripts@5.0.1
+    +-- react@18.2.0
+    +-- redux-logger@3.0.6
+    +-- redux-thunk@3.1.0
+    +-- redux@5.0.1
+    +-- tailwindcss@3.4.0
+    +-- typescript@4.9.5
+    `-- web-vitals@2.1.4
+
+    ------------------
+
+    > npx tailwindcss init -p
+
+    > vi tailwind.config.js
+    /** @type {import('tailwindcss').Config} */
+    module.exports = {
+      content: [
+        "src/**/*.{js,jsx,ts,tsx}"
+      ],
+      theme: {
+        extend: {},
+      },
+      plugins: [
+        // warn - As of Tailwind CSS v3.3, the `@tailwindcss/line-clamp` plugin is now included by default.
+        // warn - Remove it from the `plugins` array in your configuration to eliminate this warning.
+        // require("@tailwindcss/line-clamp"),
+        require("daisyui")
+      ],
+    }
+
+    ------------------
+
+    > vi tsconfig.json
+    {
+      "compilerOptions": {
+        ...,
+
+        // Append# 1. Emit more compliant, but verbose and less performant JavaScript for iteration.
+        "downlevelIteration": true,
+
+        // Append# 2. Allow imports to include TypeScript file extensions.
+        // Requires '--moduleResolution bundler' and either '--noEmit' or '--emitDeclarationOnly' to be set.
+        "allowImportingTsExtensions": true
+      },
+      ...
+    }
+
+    > tsc --showconfig
+
+
+02. What is "Kanban Board" ?
+
+  ■ This means "Visual Signal" in japan.
+
+  ■ This represents tasks visually.
+
+  ■ This helps project management with the above feature.
+
+  ■ This forms card list vertically.
+
+  ■ This can change the order or affiliation of each list or card via "drag-drop" freely.
+
+
+03. Install The "react-dnd" Package.
+
+  ■ Web browsers provide the feature 
+    that could change the location of an HTML element via way of drag-drop.
+
+  ■ There are many packages in JavaScript camp.
+    ○ The "react-dnd" package is representative       <--- ***
+
+  ■ Install the "react-dnd" package as follows:
+
+      > npm i react-dnd react-dnd-html5-backend       <--- ***
+      > npm i -D @types/react-dnd                     <--- ***
+
+  ■ This package is designed based on the "React Context".
+    ○ Thus to use components which this package provides,
+      the "DndProvider" component should be worked as a top-level component.  <--- ***
+
+    ○ Example: Sample of use of "react-dnd" in "app.tsx"
+
+          import {DndProvider} from "react-dnd"
+          import {HTML5Backend} from "react-dnd-html5-backend"
+
+
+          export default
+          function App() {
+            return (
+                <DndProvider backend={HTML5Backend}>                        <--- ***
+                  /* Components to use "react-dnd" features */              <--- ***
+                </DndProvider>                                              <--- ***
+            )
+          } // App
+
+
+04. Install The "react-beautiful-dnd" Package.
+
+  ■ The "react-dnd" package can drag-drop cards in the same list.
+    ○ But can *NOT* move cards to the *another* list.                     <--- ***
+    ○ This package can move card to the another list.                     <--- ***
+
+  ■ This package is being maintained by the "Atlassian".
+    ○ But *NO* appending new feature currently.
+
+  ■ This package do *NOT* configure React v18 with "peerDependencies".    <--- ***
+    ○ So you *CANNOT* install without "--legacy-peer-deps" option.        <--- ***
+
+  ■ Install the package as follows:
+
+        > npm i --legacy-peer-deps react-beautiful-dnd
+          OR
+        > npm i react-beautiful-dnd                                       <--- ***
+
+        > npm i -D @types/react-beautiful-dnd                             <--- ***
+
+
+05. Step1. Declare App-Level State.
+
+  ■ Do the following commands:
+
+      > cp -r src/copy/store src/store/listEntities
+      > cp -r src/copy/store src/store/listIdOrders
+      > cp -r src/copy/store src/store/cardEntities
+      > cp -r src/copy/store src/store/listIdCardIdOrders
+
+  ■ Append following contents in the "src/store/AppState.ts" as follows:
+
+      import * as L   from "./listEntities"
+      import * as LO  from "./listIdOrders"
+
+      import * as C   from "./cardEntities"
+      import * as LC  from "./listIdCardIdOrders"
+
+
+      export
+      type AppState = {
+          listEntities: L.State;
+          listIdOrders: LO.State;
+          cardEntities: C.State;
+          listIdCardIdOrders: LC.State;
+      } // AppState
+
+
+06. Step2. Implement Combined Reducer.
+
+  ■ Write the following code into "src/store/rootReducer.ts" source:
+
+      import {combineReducers} from "redux"
+
+      import * as L	from "./listEntities"
+      import * as LO 	from "./listIdOrders"
+      import * as C 	from "./cardEntities"
+      import * as LC 	from "./listIdCardIdOrders"
+
+
+      export
+      const rootReducer = combineReducers({
+          listEntities: L.reducer,
+          listIdOrders: LO.reducer,
+          cardEntities: C.reducer,
+          listIdCardIdOrders: LC.reducer
+      }) // rootReducer
+
+
+07. Step3. 
+
+  ■ 
+  ■ 
+  ■ 
+  ■ 
+  ■ 
+  ■ 
+  ■ 

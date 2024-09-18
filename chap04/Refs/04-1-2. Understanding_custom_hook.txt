@@ -1,0 +1,65 @@
+*************************************
+* 04-1-2. Understanding Custom Hook *
+*************************************
+
+01. "Custom Hook" composes several React & other Custom Hooks to make a new Hook function.
+    - Like this, The composed new function is called, "Custom Hook".
+    - This could also use other custom hooks to compose, including React hooks.
+    - The name of custom hook function starts with prefix, "use-".
+
+
+02. To make new custom hook function, "useInterval" & "useClock".
+
+    - Step1. Make a new directory, "src/hooks".
+
+    - Step2. Make a new source files :
+
+        ○ "src/hooks/index.ts"
+        ○ "src/hooks/useInterval.ts"
+        ○ "src/hooks/useClock.ts"
+
+    - Step3. Referencing the "useEffect" hook function, Implement a "useInterval" custom hook.
+
+        Example: "src/hooks/useInterval.ts"
+
+            import { useEffect } from "react"
+
+            export const useInterval = (cb: () => void, duration: number = 1000) => {
+                useEffect(() => {
+                    const id = setInterval(cb, duration)
+                    return () => clearInterval(id)
+                }, [cb, duration])
+            } // useInterval custom hook function
+
+    - Step4. With the "useState" code pattern and "useInterval" custom hook,
+             Implement a "useClock" custom hook function:
+
+        Example: "src/hooks/useEffect.ts"
+
+            import { useState } from "react"
+            import { useInterval} from "./useInterval"
+
+            export const useClock = () => {
+                const [today, setToday] = useState<Date>(new Date())
+
+                useInterval(() => setToday(new Date()))
+            } // useClock custom hook function
+
+    - Step5. Export all custom hooks in the "src/hooks" directory.
+
+        Example: "src/hooks/index.ts"
+
+            export * from "./useInterval"
+            export * from "./useClock"
+
+
+03. The features of React Hook Function         <--- ***
+
+    ① React Hook function could invoke the same React Hook many times.
+    ② React Hook could *NOT* be invoked in the brace({}) of a complex sentence in it,
+       *NOT* in itself body's brace({}).
+    ③ Asynchronous function could *NOT* be used as a callback of React hook.
+
+
+
+

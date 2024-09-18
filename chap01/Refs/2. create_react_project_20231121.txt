@@ -1,0 +1,342 @@
+*************************************
+* Create a React App Project        *
+*************************************
+
+1. "npx" command
+
+    - Usage : npx <package>
+    - A program that searches for the latest version of "<package>" and install it by executing "npm i -g <package>".
+
+
+2. Using "npx" command & "create-react-app"(called, "CRA") package,
+
+    ======================================================================
+    > npx create-react-app <react-project-folder> --template typescript
+    ======================================================================
+    > npm i -D @babel/plugin-proposal-private-property-in-object            <--- *** : For "npm test" bug fix
+    ======================================================================
+
+    - <react-project-folder>: Ok if already existed, specify '.' in this directory.
+
+        ----------------------------------------------------
+        > npx create-react-app . --template typescript
+        ----------------------------------------------------
+
+        -template typescript : Create a React Web Project based on TypeScript     <--- ***
+
+    - Example1:
+
+        ----------------------------------------------------
+        > npx create-react-app 01-5 --template typescript
+        ----------------------------------------------------
+        Need to install the following packages:
+            create-react-app@5.0.1
+        Ok to proceed? (y)  <enter>
+
+        npm WARN deprecated tar@2.2.2: This version of tar is no longer supported, and will not receive security updates.
+        Please upgrade asap.
+
+        The directory . contains files that could conflict:
+            .prettierrc.js                                                          <--- ***
+        Either try using a new directory name, or remove the files listed above.    <--- ***
+
+        ** NOTE ** : The specified directory must be empty. (***)
+
+
+    - Example2:
+
+        ----------------------------------------------------
+        > npx create-react-app 01_5 --template typescript
+        ----------------------------------------------------
+
+        Creating a new React app in C:\...\01_5.
+
+        Installing packages. This might take a couple of minutes.
+                                                                    --------- *** --------
+        Installing ① react ② react-dom and ③ react-scripts with "cra-template-typescript"...
+        ...
+
+        Initialized a git repository.
+        Installing template dependencies using "npm"...
+        ...
+
+        We detected TypeScript in your project (src\App.test.tsx) and created a "tsconfig.json" file for you.
+        Your "tsconfig.json" has been populated with default values.
+        ...
+
+        To address all issues (including breaking changes), run:
+        npm audit fix --force
+
+        Run `npm audit` for details.
+        Git commit not created Error: Command failed: git commit -m "Initialize project using Create React App"
+            ...
+        Removing .git directory...
+
+        Success! Created 01_5 at C:\app\...\chap01\01_5
+        Inside that directory, you can run several commands:
+
+        (1) npm start
+            Starts the development server.
+
+        (2) npm run build   ---> To create a "dist", ① "dist/static/css", ② "dist/static/js", ③ "dist/static/media" folders
+                                 and bundle "public/* -> To "dist/*", "src/* -> ① + ② + ③
+            Bundles the app into static files for production.
+
+        (3) npm test        ---> To execute all test source files(*.test.js, *.spec.js) based on "jest" test framework.
+            Starts the test runner.
+
+        (4) npm run eject   ---> To extract all configuration files from a React App Project.
+            Removes this tool and copies build dependencies, configuration files
+            and scripts into the app directory. If you do this, you can’t go back!
+
+        We suggest that you begin by typing:
+
+        cd 01_5
+        npm start                                   <--- ***
+
+        Happy hacking!
+
+
+3. After creating a project, packages structure:
+
+    ----------------------------------------------------
+    > npm ls -g --depth=0       (Global)
+    ----------------------------------------------------
+    C:\app\scoop\persist\nvm\nodejs\nodejs -> .\
+        +-- corepack@0.17.0         
+        +-- npm@8.19.4              
+        +-- @types/node@20.9.2                              ①
+        +-- ts-node@10.9.1                                  ②
+        `-- typescript@5.3.2                                ③
+
+
+    ----------------------------------------------------
+    > npm ls --depth=0          (Local)
+    ----------------------------------------------------
+    01_5@0.1.0 C:\app\...\chap01\01_5
+        +-- @babel/plugin-proposal-private-property-in-object@7.21.11   ⑬
+        +-- @testing-library/jest-dom@5.17.0                ①
+        +-- @testing-library/react@13.4.0                   ②
+        +-- @testing-library/user-event@13.5.0              ③
+        +-- @types/jest@27.5.2                              ④
+        +-- @types/node@16.18.63                            ⑤
+        +-- @types/react-dom@18.2.16                        ⑥
+        +-- @types/react@18.2.38                            ⑦
+        +-- react-dom@18.2.0                                ⑧
+        +-- react-scripts@5.0.1                             ⑨
+        +-- react@18.2.0                                    ⑩
+        +-- typescript@4.9.5                                ⑪
+        `-- web-vitals@2.1.4                                ⑫
+
+
+4. In "package.json" file:
+
+    {
+        ...,
+        "dependencies": {                                   <--- ***
+            "@testing-library/jest-dom": "^5.17.0",         ①
+            "@testing-library/react": "^13.4.0",            ②
+            "@testing-library/user-event": "^13.5.0",       ③
+            "@types/jest": "^27.5.2",                       ④
+            "@types/node": "^16.18.63",                     ⑤
+            "@types/react-dom": "^18.2.16",                 ⑥
+            "@types/react": "^18.2.38",                     ⑦
+            "react-dom": "^18.2.0",                         ⑧
+            "react-scripts": "5.0.1",                       ⑨
+            "react": "^18.2.0",                             ⑩
+            "typescript": "^4.9.5",                         ⑪
+            "web-vitals": "^2.1.4"                          ⑫
+        },
+        ...,
+        "devDependencies": {
+            "@babel/plugin-proposal-private-property-in-object": "^7.21.11"     ⑬
+        }
+    }
+
+
+5. In "tsconfig.json" file:
+
+    {
+        "compilerOptions": {
+            "target": "es5",                            /* ③ Set the JavaScript language version for emitted JavaScript
+                                                            and include compatible library declarations. */
+            "lib": [
+                "dom",
+                "dom.iterable",
+                "esnext"
+            ],
+
+            "allowJs": true,
+            "skipLibCheck": true,
+            "esModuleInterop": true,                    <--- ***
+            "allowSyntheticDefaultImports": true,
+            "strict": true,                             <--- ***
+            "forceConsistentCasingInFileNames": true,
+            "noFallthroughCasesInSwitch": true,
+            "module": "esnext",                         /* ① Specify what module code is generated. */
+            "moduleResolution": "node",                 /* ④ Specify how TypeScript looks up a file from a given module specifier. */
+            "resolveJsonModule": true,
+            "isolatedModules": true,
+            "noEmit": true,
+            "jsx": "react-jsx"                          <--- ***
+        },
+
+        "include": [                                    
+            "src"                                       // ⑪
+        ]
+    }
+
+
+6. When executing "npm test",
+
+    PASS  src/App.test.tsx
+    √ renders learn react link (32 ms)
+
+    Test Suites: 1 passed, 1 total
+    Tests:       1 passed, 1 total
+    Snapshots:   0 total
+    Time:        6.961 s
+    Ran all test suites.
+
+    Watch Usage
+    › Press f to run only failed tests.
+    › Press o to only run tests related to changed files.
+    › Press q to quit watch mode.
+    › Press p to filter by a filename regex pattern.
+    › Press t to filter by a test name regex pattern.
+    › Press Enter to trigger a test run.
+
+    -----------------------------------------------------------------------------
+    One of your dependencies, "babel-preset-react-app", is importing the
+    "@babel/plugin-proposal-private-property-in-object" package without
+    declaring it in its dependencies. This is currently working because
+    "@babel/plugin-proposal-private-property-in-object" is already in your
+    node_modules folder for unrelated reasons, but it may break at any time.
+
+    "babel-preset-react-app" is part of the "create-react-app" project, which
+    is not maintianed anymore. It is thus unlikely that this bug will
+    ever be fixed. Add "@babel/plugin-proposal-private-property-in-object" to
+    your "devDependencies" to work around this error.
+    This will make this message go away.
+    -----------------------------------------------------------------------------
+
+    - This, it is necessary to install additioan package, "@babel/plugin-proposal-private-property-in-object"
+      After creating a React Web App Project. But this additional package also was deprecated.
+      Instead use `@babel/plugin-transform-private-property-in-object` package (***)
+
+      > npm i -D @babel/plugin-proposal-private-property-in-object      // OK, Deprecated, But Use this *
+
+        npm WARN `deprecated` `@babel/plugin-proposal-private-property-in-object@7.21.11`: 
+        This proposal has been merged to the ECMAScript standard and thus this plugin is no longer maintained.  
+        Please use `@babel/plugin-transform-private-property-in-object` instead.    <--- ***
+
+    - Do *NOT* install the following additional package.
+      When `npm start` & `npm test`, Exception occurred,
+      due to the absence of `@babel/plugin-proposal-private-property-in-object`.    <--- ***
+
+      > npm i -D @babel/plugin-transform-private-property-in-object     // XX
+
+
+7. When executing "npm run build",
+
+    > 01_5@0.1.0 build
+    > react-scripts build
+
+    Creating an optimized production build...
+    Compiled successfully.
+
+    File sizes after gzip:
+
+    46.63 kB  build\static\js\main.28437327.js            <--- ***
+    1.78 kB   build\static\js\787.33b19b84.chunk.js       <--- ***
+    515 B     build\static\css\main.f855e6bc.css          <--- ***
+
+    The project was built assuming it is hosted at /.
+    You can control this with the homepage field in your package.json.
+
+    The "build" folder is ready to be deployed.
+    You may serve it with a "static server":
+
+    ---------------------
+    * 1st. method
+    ---------------------
+    npm install -g serve                                  <--- ***
+    serve -s build                                        <--- ***
+
+    ---------------------
+    * 2nd. method
+    ---------------------
+    npx serve -s build                                    <--- *** : *Recommended*
+
+    Find out more about deployment here:
+
+    https://cra.link/deployment
+
+
+8. Project Directory Structure, Except for "node_modules/" directory:
+
+    > tree .
+    C:\APP\...\CHAP01\01_5
+    ├─build                     ③ - The directory which "npm run build" command creates.
+    │  └─static                 ④ - Created by "Webpack".
+    │      ├─css                ⑤ - The directory which bundled CSS files placed on.
+    │      ├─js                 ⑥ - The directory which bundled JS files placed on.
+    │      └─media              ⑦ - The directory which bundled Image files placed on.
+    │
+    ├─public                    ① - The directory which default static files placed on.
+    └─src                       ② - The directory which default source files placed on.
+
+
+    > tree . /f
+    C:\APP\...\CHAP01\01_5
+    │  .gitignore               
+    │  .prettierrc.js           // Prettier Formatter Extension Configuration File.
+    │  package-lock.json
+    │  package.json             // npm package dependencies configuration file.  ( > npm init -y )
+    │  README.md
+    │  tsconfig.json            // TypeScript Compiler (tsc) Configuration File. ( > tsc --init  )
+    │
+    ├─build                     ③ - The directory which "npm run build" command creates.
+    │  │  asset-manifest.json   ⑧ - Information file about all bundled assets created by "Webpack". (***)
+    │  │
+    │  │  favicon.ico           // public/favicon.ico file moved to this.
+    │  │  index.html            // public/index.html file bundled by "Webpack" and moved to this.   <--- ***
+    │  │  logo192.png           // public/logo192.png file moved to this.
+    │  │  logo512.png           // public/logo512.png file moved to this.
+    │  │  manifest.json         // public/manifest.json file moved to this.
+    │  │  robots.txt            // public/robots.txt file moved to this.
+    │  │
+    │  └─static                 ④ - Created by "Webpack".
+    │      ├─css                ⑤ - The directory which bundled CSS files placed on.
+    │      │      main.f855e6bc.css
+    │      │      main.f855e6bc.css.map
+    │      │
+    │      ├─js                 ⑥ - The directory which bundled JS files placed on.
+    │      │      787.33b19b84.chunk.js
+    │      │      787.33b19b84.chunk.js.map
+    │      │      main.28437327.js
+    │      │      main.28437327.js.LICENSE.txt
+    │      │      main.28437327.js.map
+    │      │
+    │      └─media              ⑦ - The directory which bundled Image files placed on.
+    │              logo.6ce24c58023cc2f8fd88fe9d219db6c6.svg
+    │
+    ├─public                    ① - The directory which default static files placed on.
+    │      favicon.ico          // static file -> When build, moved to "build/favicon.ico".
+    │      index.html           // static file -> When build, moved to "build/index.html".
+    │      logo192.png          // static file -> When build, moved to "build/logo192.png".
+    │      logo512.png          // static file -> When build, moved to "build/logo512.png".
+    │      manifest.json        // static file -> When build, moved to "build/manifest.json".
+    │      robots.txt           // static file -> When build, moved to "build/robots.txt".
+    │
+    └─src                       ② - The directory which default source files placed on.
+            App.css
+            App.test.tsx
+            App.tsx
+            index.css
+            index.tsx
+            logo.svg
+            react-app-env.d.ts
+            reportWebVitals.ts
+            setupTests.ts
+

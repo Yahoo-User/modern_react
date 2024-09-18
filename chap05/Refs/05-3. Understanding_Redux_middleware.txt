@@ -1,0 +1,385 @@
+*******************************************************
+* 05-3. Understanding The "Redux Middleware"   		  *
+*******************************************************
+
+01. The purpose of redux middleware.
+
+	■ The methods to supplement the redux contraint that 
+	  the "reducer" function should be a "Pure" function.	<--- ***
+
+
+02. What's the redux middlware ?
+
+	■ In "reducer" function's body, side-effectful code could *NOT* be used.	(***)
+
+	■ This contraint makes the redux features more complicated like previous "RemoteUserTest" component.
+
+	■ The redux middlware dispatches the result gained from executing "side-effectful" code in front of the "reducer"
+	  to the next "reducer" as follows:
+									   ***               ***
+								    ----------          -------
+	  	[ dispatch(action) ] ---> [ middlwares ] ---> [ reducer ] ---> [ redux store ] 					<--- ***
+
+	■ The redux middlware is the *3-order* (high-order) function as follows:							<--- ***
+
+		import {Action, Dispatch} from "redux"
+
+		export
+		function someMiddleware<S=any>({getState}: {getState: () => S}) {
+			return (next: Dispatch) => (action: Action) => {
+				const returnValue = next(action)
+				return returnValue
+			}
+		}
+
+		Here, the "Dispatch" is the type as follows that is the same as 
+		type of the "dispatch" function gained from "useDispatch" React hook:	(***)
+
+		* Dispatch Type:
+
+			export
+			interface Dispatch<A extends Action = AnyAction> {		<--- ***
+				<T extends A>(action: T): T
+			}
+
+	■ The redux middleware should always return the function 
+	  that have an "Action" type parameter as follows: 
+
+	  	* Return a function receiving an "action "as a parameter:
+
+			(dispatch: Dispatch) => (action: Action) => {}
+
+	■ Then if the redux middlware does *nothing*,
+	  The redux itself could *NOT* execute its own feature normally
+	  because all actions which will flow into the "redux store" could *NOT* flow into it.						<--- ***
+
+	  Thus, the redux middleware should return the "action" returned by "next" as follows
+	  and cause other middlwares to act together:																<--- ***
+
+	  	* The base form of redux middleware: (***)
+
+			(next: Dispatch) => (action: Action) => {
+				return next(action)
+			}
+
+
+03. Make a User-Defined Logger Redux Middleware.
+
+	■ Though making named "logger" middleware, learn more operating principle of redux middlware:
+
+	  ○ Step1. touch src/store/logger.ts
+
+	  ○ Step2. Write code into the "src/store/logger.ts" as follows:
+
+		Combining all actions which flows into the "redux store" with all actions flowed by "reducers",
+		Print out *new* "app-level state" into the console.
+
+		Please refer to the "src/store/logger.ts" source.
+
+	■ The redux middleware definitely must return the value of executing "next(action)".	<--- ***
+
+	  ○ Redux middleware is a "high-order" function that returns "2-order" function.		<--- ***
+
+
+04. Configure a Redux Middleware.
+
+	■ Apply the "logger" redux middleware to the "redux store".
+
+	  ○ In 05-1, in "src/store/useStore.ts",
+	    Write code to invoke "configureStore" function as follows:
+																		 ***
+		const initializeStore = () => {  						--------------
+			const store = configureStore({ reducer: rootReducer, middleware: [] })
+			return store
+		}
+
+	  ○ The "configureStore" function has an *optional* parameter, named "middleware" 		(***)
+
+	  ○ Append "logger" redux middleware into 
+	    the optional parameter "middleware" of "configureStore" function as follows:		<--- ***
+
+		...
+
+		import logger from "./middleware/logger"
+
+		const initializeStore = () => {
+			const middleware: any[] = [logger]												<--- ***
+
+			// const store = configureStore({reducer: rootReducer, middleware: middleware})	<--- ***
+			const store = configureStore({reducer: rootReducer, middleware})				<--- ***
+
+			return store
+		}
+
+		...
+
+	  ○ But "logger" middleware is necessary when *only* developing. 						<--- ***
+	    If the above code applied to the production, security & performance is poor.
+
+	  ○ Thus, to log by "logger" middleware When only developing,
+	    Check the developmemt or production mode
+		according to the "process.env.NODE_ENV" attribute is "production".					<--- ***
+
+		Example:
+
+			const isDevelopment: boolean = process.env.NODE_ENV !== "production"
+
+			if(isDevelopment) {
+				...
+			}
+
+	  ○ So, by logging with "logger" redux middleware when only development mode,
+	    resolve security & performance issue.  (***)
+
+		Update code into "src/store/useStore.ts" custom hook.
+		Please refer to the "src/store/useStore.ts" source.
+
+
+05. Test User-defined Redux Middleware.
+
+	■ In previous 04, the "logger" redux middleware called back *ONLY*
+	  when "actions" flow into the "redux store".										<-- ***
+
+	  ○ Thus, When making an action to test and invoking "dispatch" function with it,
+	    the "logger" middleware will be invoked. (called back)							<--- ***
+
+	■ Write code into "src/pages/LoggerTest.tsx" source
+
+		Please refer to "src/pages/LoggerTest.tsx"
+
+
+06. Using Redux Logger Package.
+
+	■ Install "redux-logger" package as follows:
+
+		> npm info redux-logger
+		Logger for Redux
+
+		> npm i redux-logger
+		> npm i -D @types/redux-logger
+
+	■ Update code into "src/store/useStore.ts" source as follows:
+
+		// import {mymiddleware} from "./middlware
+
+		import logger from "redux-logger"
+
+	■ Please refer to the "src/store/useStore.ts" custom hook
+
+
+07. Understanding "thunk" Redux Built-in Middleware.
+
+	■ The "redux-thunk" package is the most common used redux middleware			<--- ***
+
+	■ Install as follows:
+
+		> npm i redux-thunk
+		> npm i -D @types/redux-thunk
+
+	■ The core feature:
+
+	  ○ The "redux middleware" is a 2-order high-order function.					<--- ***
+
+	  ○ This "thunk" redux built-in middleware invokes "action" as a function
+	    if the "action" type is "function" as follows:
+
+			import {Action, Dispatch} from "redux"
+
+			export
+			function thunkMiddleware<S=any>({ dispatch, getState }: { dispatch: Dispatch, getState: () => S}) {
+				return (next: Dispatch) => (action: Action) => {
+					if(typeof action === "function") {								<--- ***
+						return action(dispatch, getState)							<--- ***: *CORE*
+					}
+
+					return next(action)
+				}
+			} // thunkMiddleware
+
+	  	Please refer to "src/store/middleware/thunkMiddleware.ts" source
+
+	  ○ If equipped the "thunk" redux middleware, You can make an "action generator"
+	  	in the form of a function with a parameter passed "dispatch" function as follows:	<--- ***
+
+			const functionAction = (dispatch: Dispatch) => {			<--- ***: action generator
+				dispatch(someAction)
+			}
+
+	  ○ As we found earlier, the "reducer" function must be "pure".		<--- ***
+	    But the "redux middleware" function don't have to be "pure".	<--- ***
+
+	  ○ In deed, the "redux middleware" makes side-effectful code act
+	  	like operated in the "reducer" function body.					<--- ***
+
+	■ Put the redux "logger & thunk" middlewares into the "middleware" array
+	  in the "src/store/useStore.ts" source as follows:
+
+	  If you do this, the redux built-in "thunk" and "logger" middleware operates together
+
+	  	...
+		import logger from "redux-logger"
+		import thunk from "redux-thunk"
+
+		const useLogger = process.env.NODE_ENV !== "production"
+
+		const initializeStore = () => {
+			const middleware: any[] = [thunk]
+			if(useLogger) {
+				middleware.push(logger)
+			}
+			...
+
+
+08. Implement Loading UI.
+
+	■ When web application takes data from the remote server,
+	  Loading UI which notify current processing to users is necessary.
+
+	  ○ But implementing loading UI repeatedly on each web page is more complex.
+	  ○ To reduce complex job like this, implement "loading" member property
+
+	■ Write code into "src/store/loading/1_types.tsx" source as follows:
+
+	  ○ Here, define all necessary action types								<--- ***
+	  ○ Please refer to "src/store/loading/1_types.tsx" source
+	  ○ The prefix of action is "@loading/actionName"						<--- ***
+	  ○ The name of an required action is "prefix"+"actionName", "@loading/setLoading"  
+	  ○ Default payload type is "boolean" to set/unset loading
+
+	■ Write code into "src/store/loading/2_actions.tsx" to define "action generator".
+
+	  ○ Define all actions according to the pre-defined each action type	<--- ***
+	  ○ Please refer to "src/store/loading/2_action.tsx" source
+
+	■ Write code into "src/store/loading/3_reducer.tsx" to create new state
+	  with previous state & the specified action.
+
+	  ○ Please refer to "src/store/loading/3_reducer.tsx" source
+
+	■ Write code to implement "loading UI" on *each* component to need it
+	  as follows:
+
+		const duration = 1000 * 3
+		const dispatch = useDispatch()
+
+		const doTimedLoading = useCallback(() => {
+			dispatch(setLoading(true))
+
+			const timerId = setTimeout(() => {
+				clearTimeout(timeId)
+				dispatch(setLoading(false))
+			}, duration)
+		}, [])
+
+	  ○ The above code cause duplicate code on each component to need loading UI
+
+	  ○ To remove duplicate code with loading UI, Implement the "doTimedLoading" function
+	    in the form of returning "thunk" action as follows:						<--- ***
+
+		export
+		const doTimedLoading = (duration: number = 1000 * 3) => "thunk action"	<--- ***
+
+	  ○ Write code to "src/store/loading/doTimedLoading.ts" source
+	    to implement "thunk action" like the above:
+
+		> touch src/store/loading/doTimedLoading.ts
+
+		import {Dispatch} from "redux"
+		import {setLoading} from "./2_actions"
+
+		// export
+		// const doTimedLoading = (duration: number = 1000 * 3) => "thunk action"		<--- *** 
+
+		export
+		const doTimedLoading = (duration: number = 1000*3) => (dispatch: Dispatch) => {
+			// 1. "dispatch(action)" to send "setLoading" action to the "redux store"
+			// 	  to change loading state with "true".
+			dispatch(setLoading(true))
+
+			const id = setTimeout(() => {
+				clearTimeout(id)
+
+				// 2. "dispatch(action)" to send "setLoading" action to the "redux store"
+				//    to change load state with "false".
+				dispatch(setLoading(false))
+			}, duration)
+		} // doTimedLoading
+	
+
+09. Implement Error Message.
+
+	■ This time, Implement the "errorMessage" memeber state of
+	  the "App-Level State" ("src/store/AppState.ts") to print an error message.	<--- ***
+
+	■ In React developing, The "Error" type object often appears in the code of
+	  processing the "Promise" object and "try ~ catch" sentence.					<--- ***
+
+	■ In general React developmemt, The "Error" object is the "Error | null" type
+	  as follows:																	<--- ***
+
+			const [error, setError] = useState<Error | null>(null)					<--- ***
+			{ error && <p>{error.message}</p>}							(***)
+
+	  ○ But the "Error" type which is implemented as "null" is *NOT* desirable
+	    in the Redux state.															<--- ***
+
+	  ○ In deed, the "UI" does *NOT* need all information of "Error" type object,
+	    but only "error message" of "message" property of it.
+
+		Thus, the writing code to check as follows
+		whether the length of error message > 0 is more desirable:	(***)
+
+			const errorMessage = useSelector(state => state.errorMessage)			<--- ***
+			{errorMessage.length && <p>{error.message}</p>}			(***)
+
+	■ Step1. Write code into "src/store/errorMessage/1_types.ts" source
+		Please refer to "src/store/errorMessage/1_types.ts" file
+
+	■ Step2. Write code into "src/store/errorMessage/2_actions.ts" source
+		Please refer to "src/store/errorMessage/2_actions.ts" file
+
+	■ Step3. Write code into "src/store/errorMessage/3_reducer.ts" source
+		Please refer to "src/store/errorMessage/3_reducer.ts" file
+
+	■ Step4. Write code into "src/store/errorMessage/thunk_action/generateErrorMessage.ts" source
+		Plase refer to "src/store/errorMessage/thunk_action/generateErrorMessage.ts" file
+
+
+10. Reform the Feature to Change a User Information 
+
+	■ In 05-2, the "RemoreUserTest" component was implemented as follows:
+
+		const getRemoteUser = userCallback(() => {
+			toggleLoading()
+
+			D.fetchRandomUser()
+				.then(user => dispatch(R.setUser(user)))
+				.catch(setError)
+				.finally(toggleLoading)
+		}, [])	// getRemoteUser
+
+	■ Create a new TypeScript source file as follows:
+
+		> touch src/store/fetchUser/fetch.ts
+
+	■ In 05-2 "GetRemoteUser.tsx" file,
+	  the "getRemoteUser" and "changeName" callback invoked "D.fetchRandomUser" function
+
+	  ○ From now, Implement these callback in the "fetch.ts" source as follows:
+
+	  		Please refer to "src/store/fetchUser/fetch.ts" file
+
+	  ○ Change all codes using React hook with "thunk action"
+	    and then, change codes of invoking "setters" gained from invoking "useState" React hook
+		with the form of dispatching actions for "loading" and "errorMessage" member state in "AppState".	<--- ***
+
+	  ○ Just, to resolve duplication of "changeName" action name,
+	    export "changeNameByFetching" function instead of "changeName"
+
+	■ The "thunk actions" help that code of invoking complex React hook would be more simply implemented.	<--- ***
+
+	■ 
+
+ 
+
+

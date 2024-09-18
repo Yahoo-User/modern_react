@@ -1,0 +1,412 @@
+****************************************
+* Understanding React Event Properties *
+****************************************
+
+
+01. All HTML elements provides the properties which starts with `on-`
+    like `onmouseover`, `onmouseenter`.                                     <--- ***
+
+    - This properties called, "Event Properties".                           <--- ***
+
+
+02. What is Event ?
+    - Including React, All framework which manipulate UI have to 
+      notify the UI maipulating event to the UI implementing part
+      if maipulating UI like Pressing a Button or Inputing Texts.           <--- ***
+
+    - At this time, called "Event Triggered".
+
+
+03. What is `Event Type` ?
+    - The JavaScript engine in Web browser provides `Event Types`.          <--- ***
+    - The main properties of `Event` are the following:
+
+        (1) type            - Event Name. Case-insensitive.                     (***)
+        (2) isTrusted       - Whether the event triggered in a web browser(true) 
+                              or by a program(false).                           (***)
+        (3) target          - HTML element in which an event triggered
+                              for the first time.                               (***)
+        (4) currentTarget   - Current target of the event.
+                              That is, the object(= element) which the event located
+                              currently in Event Bubbling.                      (***)
+        (5) bubbles         - Decide whether an event enabled bubbling
+                              through DOM.                                      (***)
+
+
+04. How to create an Event object ?
+
+    - The following example code is to create an Event object
+      whose name is "click", and to decide whether enabling an Event Bubbling.
+
+      Example:
+
+        // var Event: new (type: string, eventInitDict?: EventInit | undefined) => Event
+        // An event which takes place in the DOM.
+
+        // interface EventInit {
+        //    bubbles?: boolean;
+        //    cancelable?: boolean;
+        //    composed?: boolean;
+        // }
+
+        new Event("click", { bubbles: true })
+
+
+05. `EventTarget` Type
+    - In previous 02-1, All HTML elements inherits the `HTMLElement` type.      <--- ***
+
+    - `HTMLElement` type extends `Element` super type                          (***)
+       which extends `Node` super type                                         (***)
+       which extends `EventTarget` super type.                                 (***)
+
+        * Type Hierarchy of `HTMLElement` *
+
+            [ EventTarget ] => provides addEventListener, removeEventListener, dispatchEvent methods.
+                    ▲
+            [     Node    ]
+                    ▲
+            [    Element  ]
+                    ▲
+            [ HTMLElement ]
+
+    - Thus, All HTML elements inherits `properties` and `methods` of 
+      the `EventTarget` at-most super type.                                     (***)
+
+
+06. Event Handler
+    - `EventTarget` provides the following three methods:
+        ① addEventListener    : `add` + `Event Listener`(= Event Handler) 
+        ② removeEventListener
+        ③ dispatchEvent
+
+        * EventListener 
+            - Event + Listener
+            - Here, `Listener` means `callback` which implements Listener.      (***)
+            - More simply, called "Event Handler"                               <--- ***
+
+    - Role:
+        While listening on the specified event which will trigger, 
+        If the specified event triggered,
+        The event handler notifies the event to the code.                       <--- ***
+
+    - You can add `several` event handler on `one` specified HTMLElementnt.     <--- ***
+
+    - Usage of `addEventListener`:
+
+        DOM_object.addEventListener( eventName: string, callback: (e: Event) => void )
+
+
+07. BOM's `window` object
+    - type: `Window`                                    (***)
+
+    - `Window` type extends `EventTarget` super type.   (***)
+
+    - Thus, `window` object provides `addEventListener` method.
+
+    - Example: window.addEventListener('click', (e: Event) => console.log(e) )
+
+
+08. React Project always includes `<div id='root'>` tag in `public/index.html' file.
+    - To add an event handler, the following code enabled:
+
+      Example:
+
+        document.querySelector('#root')?.addEventListener('click', (e: Event) => {
+            const { isTrusted, target, bubbles } = e
+            console.log('mouse clicked.', isTrusted, target, bubbles)
+        }) // .addEventListener
+
+        Here, TypeScript `Optional Channing Operator`, Symbol(?.) used.         (***)
+
+        If `document.querySelector('#root')` is null,
+        Optional chaining operator(?.) do *NOT* invoke the method.             `(***)
+
+
+09. Physical HTML DOM object's Event Properties
+    - `EventTarget.addEventListener` is a little bit complicated.
+    - Thus, Almost HTML elements including BOM, window object 
+      provides `global event attributes` which starts with prefix, 'on-'.
+    - This `global event attributes` defined in the `HTMLElement` type.         <--- ***
+    - The purpose of `global event attributes` is to simplify 
+      the usage of `EventTarget.addEventListener` method.                       <--- ***
+    - Thus, The value of `global event attributes` is always event handler:
+
+        Example1:
+
+            window.onclick = console.log
+            window.onclick = (e: Event) => console.log(e)
+    
+        Example2: Without TypeScript Optional Channing Operator(.?)
+
+            // TypeScript Optional Chaning Operator cannot be used 
+            // if the sentence is an expression.
+            document.querySelector('#root')?.onclick = callback         // XX
+    
+            const rootDiv = document.querySelector("#root)
+            if(rootDiv) {
+                rootDiv.onclick = (e: Event) => console.log(e)          // OK
+            }
+
+    - In this way, The last event handler overwrites the previous's.             <--- ***  
+
+
+10. The Event Properties of React Framework.
+    - React Components also provides event properties in the form of `onEventName`.
+    - Big difference from HTML DOM global event attributes is
+      that React core component's event properties follows 'Camel-case notation'
+      and starts with lowercase like 'onClick', 'onMouseEnter'.                 <--- ***
+    - The name of all HTML DOM global event attributes is all lowercase.        <--- ***
+    - The event handler of the React component is a callback function that
+      have a parameter whose type is "SyntheticEvent", *NOT* "Event".           <--- ***
+
+    - The definition of "SyntheticEvent":
+
+        Here, "Synthetic" means that all kinds of Events aggregated.            <--- ***
+
+        interface SyntheticEvent<T = Element, E = Event> 
+            extends BaseSyntheticEvent<E, EventTarget & T, EventTarget> {}
+
+        interface Element {}
+        interface Event {}
+        interface EventTarget {}
+
+        interface BaseSyntheticEvent<E = object, C = any, T = any> {
+            // To save an Event triggered in the Physical DOM.                  <--- ***
+            nativeEvent: E;
+
+            // To save an DOM object that receives the event currently
+            // in progress of `Event Bubbling`.                                 <--- ***
+            currentTarget: C;
+            
+            // To save an DOM object on which an Event triggered
+            // for the first time.                                              <--- ***
+            target: T;
+
+            // ?
+            preventDefault(): void;
+
+            // ?
+            stopPropagation(): void;
+            ...
+        }
+    
+    - An event triggered from the Physical DOM called, "Native Event".          <--- ***
+    - There are *NO* large differences from Physical DOM event.                 <--- ***
+
+
+11. "EventTarget.dispatchEvent" method.
+    - The most super type, `EventTarget`of DOM provides `dispatchEvent` method.
+        
+        dispatchEvent(event: Event): boolean;                                   <--- ***
+
+    - In previous, An event object could be created by the following:
+        
+        new Event("click", { bubbles: true })
+
+    - Through invoking the `dispatchEvent` method of "Target_DOM_Object"
+      that becomes the `target` property of an `Event` or `SyntheticEvent`,
+      A new event can be raised like the following:                             <--- ***
+
+        Target_DOM_Object.dispatchEvent(new Event('click', { bubbles: true }))  <--- ***
+        => The `isTrusted` property of a triggered `Event` might be `false`.    (***)
+
+    - Interestingly, the `HTMLElement` super type of all DOM objects provides
+      "click" method. This method acts the same as `EventTarget.dispatchEvent`. <--- ***
+
+      In deeed, The "HTMLElement.click" method might be implemented 
+      by `EventTarget.dispatchEvent` method. (***) 
+
+        Target_DOM_Object.click()  
+        => The `isTrusted` property of a triggered event is `false`.            (***)
+
+
+12. Event Bubbling
+    - This is that an `event` triggered in the `child` element
+      transfered to the `parent` elements from the `closest` to the `most distant`.
+
+            [ window ]          ▲
+                    |           |
+                [ <body> ]      |
+                        |       | A triggered event transfered from in-most to out-most.
+                    [ <div> ]   | (* Event Bubbling *)
+                                |
+                With 'click'    |
+                Event Handler=> | e.currentTarget: <div> element                (***)
+                                |
+                           [ <button> ]    <-- An event triggered               (***)
+
+                            With 'click'
+                            Event Handler => e.currentTarget: <button> element  (***)
+
+    - Example:
+
+        const onDivClick = (e: SyntheticEvent) => e.currentTarget : <div> element
+        const onButtonClick = (e: SyntheticEvent) => e.currentTarget : <button> element
+
+        return (
+            <div onClick={ onDivClick }>
+                <button onClick={ onButtonClick }>Click Me</button>
+            </div>
+        )
+
+
+13. "BaseSyntheticEvent.stopPropagation" Method
+    - You can stop Event Bubbling by `stopPropagation` method. 
+      Thus, the transfer of a triggered event from closest parent to distant parent stopped.
+    - This is called, "Event Capturing". => Stopping Event Bubbling
+
+
+14. Event Handling of <input> Element
+    - The <input> is a representational element with <button> that needs an event handler.
+    
+    - The difference between <button> and <input type="button>:
+        a. Common: Both triggers click event.
+        b. Difference:
+            <button> element CAN have `child` elements like this:
+                <button><span>I'm a button</span></button>
+
+            <input type="button"/> element CANNOT have `child` elements.            <--- ***
+
+    - The <input>'s `onChange` event attribute:
+        a. If a mouse click the <input> element, `click` event occurred.
+        b. But If input text, `change` event occurred.                              <--- ***
+        c. This `change` event could be get through `onChange` event property.
+        d. The `ChangeEvent<T>` generic type extends `SyntheticEvent` and
+           appended additional `target` property.                                   <--- ***
+
+            Here, Type variable <T> must be a DOM type
+            like `HTMLElement` or `HTMLInputElement`.                               <--- ***
+
+            interface ChangeEvent<T = Element> extends SyntheticEvent<T> {
+                target: EventTarget & T;                                            <--- ***
+            }
+
+    - The <input>'s event properties:
+        a. All attributes which <input> element provides could be get
+           in form of `React.InputHTMLAttributes<HTMLInputElement>`.
+
+        b. If type="checkbox" / "radio",
+           Then user input could be get through "e.target.checked" property.        <--- ***
+
+        c. If type="text" / "email" / "password" / "range",
+           Then user input could be get through "e.target.value" property.          <--- ***
+
+        d. If type="file",
+           Then user input could be get through "e.target.files" property.          <--- ***
+
+        * Here, `(e: ChangeEvent<HTMLInputElement>) => {}`.
+
+    - The <input>'s `defaultValue` & `defaultChecked` attributes:
+        a. <input> element provides not only `value`, `checked` attributes
+           but also, `defaultValue`, `defaultChecked`.                              <--- ***
+        b. When getting user input, 'value' / 'checked' attributes are used.
+        c. When setting intial value,
+           'defaultValue' / 'defaultChecked' attributes are used.                   <--- ***
+
+        * If the initial value sets to the `value` property, *NOT* `defaultValue`,
+          Then, Warning occurred like the following:
+
+          <input type="text" value="hello" />
+
+    - The `onChange` event handling in the <input type="file"/>:
+        a. If <input type="file">, The "change" event occurred.                     <--- ***
+        b. File list could be get through "e.target.files" property.                <--- ***
+           This property is provided by web browser, NOT React.
+        
+            const files: FileList | null = e.target.files                           <--- ***
+
+            interface FileList {
+                readonly length: number;
+                item(index: number): File | null;
+                [index: number]: File;
+            }
+
+
+15. Drag & Drop Event Handling
+    - All HTML elements which extends `HTMLElement` provides 
+      boolean type attribute, named "draggable".                                    <--- ***
+
+    - Example:
+
+        <h1 draggable>Drag Me</h1>
+
+    - If configuring `draggable` attribute to the HTML element,
+      Drag & Drop Event occurred when dragging & dropping the element.              <--- ***
+
+    - The following is the Drag & Drop event list:                                  <--- ***
+
+        (1) dragenter (in React: onDragEnter)   (***)
+            Triggered when a dragging element or text block hovers on the appropriate drop target.
+
+        (2) dragstart (in React: onDragStart)   (***)
+            Triggered when user is about to drag a element or text block.
+
+        (3) drag (in React: onDrag)             (***)
+            Triggered while dragging an element or text block.
+
+        (4) dragover (in React: onDragOver)     (***)
+            Triggered in milliseconds while a dragging element or text block is passing
+            on the appropriate drop target
+            
+        (5) dragleave (in React: onDragLeave)   (***)
+            Triggered when a dragging element or text block gets out of the appropriate drop target.
+
+        (6) dragend (in React: onDragEnd)       (***)
+            Triggered when drag is over.
+
+        (7) drop (in React: onDrop)             (***)
+            Triggered when a dragging element or text block dropped on the appropriate drop target.  
+
+    - React provides `DragEvent` type in regard to drag & drop                      <--- ***
+
+        interface DragEvent extends MouseEvent {
+            readonly dataTransfer: DataTransfer | null;
+        }
+
+        interface DataTransfer {
+            dropEffect: "none" | "copy" | "link" | "move";
+            effectAllowed: "none" | "copy" | "copyLink" | "copyMove" | "link" | "linkMove" | "move" | "all" | "uninitialized";
+            readonly files: FileList;
+            readonly items: DataTransferItemList;
+            readonly types: ReadonlyArray<string>;
+            clearData(format?: string): void;
+            getData(format: string): string;
+            setData(format: string, data: string): void;
+            setDragImage(image: Element, x: number, y: number): void;
+        }
+
+    - In `DragEvent` type, The most import property is `dataTransfer`.              <--- ***
+
+    - When dropped a file, The file information could be get
+      through the `files` property of `DataTransfer` type.                          <--- ***
+
+    - To handling Drag & Drop event,
+      it's necessary to know the `preventDefault` method.                           <--- ***
+
+      This method prevent the default behavior of web browser related with the event
+      When an event triggered by some user action.                                  <--- ***
+
+    - Web browser by default is designed *NOT* to trigger a `drop` event.           <--- ***
+
+      Thus, To trigger a `drop` event,                                              <--- ***
+
+      ① The `preventDefault` method should be invoked 
+         in the `onDragOver` event handler like the following:                      <--- ***
+
+            const onDragOver = (e: DragEvent) => {
+                e.preventDefault()
+            }
+
+      ② Invoking the `preventDefault` method in the `onDrop` event handler
+         is also good like the following:                                           <--- ***
+
+            const onDrop = (e: DragEvent) => {
+                e.preventDefault()
+            }
+
+        Because that web browser open new window and shows the dropped file in it
+        when a file dropped. (To prevent this default behavior of web browser )     <--- ***
+
+    - Outside Web browser, Multiple files could be dragged & dropped.               <--- ***
+
+ 

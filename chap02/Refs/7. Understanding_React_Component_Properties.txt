@@ -1,0 +1,54 @@
+*************************************
+* React Component Properties        *
+*************************************
+
+1.  What are the `properties` of React Component ?
+    - In OOP, `properties` are class `fields`.                      <--- ***
+    - A React component also is a Class.
+      Thus, A React component could have `properties`.
+    - Mutable Properties    : Frequently Changeable Properties
+    - Immuable Properties   : Always Read-only Properties
+
+2.  The properties in React framework are used to transfer 
+    `data` of `Parent` component to the `Child` component.           <--- ***
+
+3.  In 02-1, The second parameter, "props" in "React.createElement" method
+    means "properties":
+
+    - The function prototype of "React.createElement" in 02-1 before:
+        
+        function createElement<P extends {}>(                       <--- ***
+            type        :                                                               
+                ① FunctionComponent<P>    |   (***)
+                ② ComponentClass<P>       |   (***)
+                ③ string,                     (***)
+
+            props?      : Attributes & P | null,                    <--- ***
+
+            ...children : ReactNode[]
+        ): ReactElement<P>;
+
+        * Here, Type Parameter, "P" is the head of "Property".      <--- ***
+
+    - "props" means "Properties", That is, "Class Fields".          <--- ***
+      Properties, "P" have `Type Constraint`, <p extends {}>        <--- ***
+      Thus, React properties at least must be an object({})         <--- ***
+      
+    - Also, `?` means `optional` parameter.
+      Thus, React component properties are *NOT* necessary.         <--- ***
+
+4.  The `properties` in React is to transfer an `Object` type data
+    from `Parent` component to `Child` component. <P extends {}>    <--- ***
+
+    - `Fields`(= Properties) in OOP only save values and changeable.
+
+    - But If `properies` in React changed, the React component must be re-rendered 
+      and thus, apply changed propertie's value to the screen.      <--- ***
+
+    - In point of React, Properties that are object type({}) variables of 
+      ① OOP's properties + ② Re-rendering.                        <--- ***
+
+5.  For reference, The `fields` In OOP class are the same 
+    as "state" in React component.                                  <--- ***
+      
+

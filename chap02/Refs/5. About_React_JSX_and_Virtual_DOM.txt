@@ -1,0 +1,145 @@
+*************************************
+* React JSX & Virtual DOM           *
+*************************************
+
+01. React JSX => JavaScript + XML
+    - To Simplify complex of usage of "React.createElement" methods.
+    - The language extension of JavaScript : "JavaScript XML".
+    - Add new syntax, `JSX` To the `JavaScript`.
+    - The decisive motivation of broad usage of React Framework.
+
+02. @Until React v16, If using React JSX statement,
+    Definitely, import `React` from the "react" package like the following;
+
+    import React from "react"           <--- *** : Required @until React v16
+
+03. @since React v17, If using React JSX statements,
+    The following import statement is *NO* longer required:
+
+    // import React from "react"        <--- *** : No required @since React v17
+
+04. Re-designed to the "XML + JavaScript"
+    - Designed to simplify the usage of "React.createElement" method.
+    - Meant to be *NO* JSX setences in the standard `ESNext` and `TypeScript` itself.
+    - Improve development productivities.
+
+05. Terms:
+            ① Start Tag                                     ② Closing Tag
+    ------------------------------------                      ------
+    <div id="root" style='display: flex'><h1>Hello, World</h1></div>
+         --------  --------------------- ---------------------
+        ③ property    ③ property            ④ Child Tag
+
+
+    - If *NO* child tags, by short-hand, could be a "Self-closing Tag";     <--- ***
+
+        <Element />     // Self-closing Tag
+
+        Ex) <p />
+
+    - Definitely, `Closing Tag` required.                                   <--- ***
+
+        Ex) <p></p>     // Closing Tag
+
+06. In React JSX, Obey the rules of XML :
+    - "Self-Closing Tag" required.          (***)
+    - Definitely, "Closing Tag" required.   (***)
+
+        Ex1) Incorrect JSX Setences:
+
+            <input type="text">
+            <img src="url">
+
+        Ex2) Correct JSX Setences:
+
+            <input type="text" />           <--- *** : Self-Closing Tag
+            <img src="url" />               <--- *** : Self-Closing Tag
+            <p></p>                         <--- *** : Definitely, Closing Tag Required.
+
+07. A `brace({})` In React JSX
+    - JSX provides `brace({})` syntax to insert "JavaScript Codes" into the XML.
+    - Usage:
+                <p> { /* JavaScript Codes */ } </p>
+
+        * Notice : Here, /* JavaScript Codes */ must return a "value" without "return" keyword. <--- ***
+                   That is, It should be a "Expression" in TypeScript & ESNext JavaScript.      <--- ***
+
+    - Example:
+                const hello = "Hello, World"
+                <p>{ hello }</p>
+
+    - Expression :
+        a. Statement to return a value without "return" keyword => "Declarative Statement". (***)
+        b. Includes :                                                                       (***)
+            ① Literal (scalar, vector, matrix, tensor)
+            ② Operation which comprised of operators and operands to return a value.
+            ③ Function which returns a value call.
+        c. Directly opposite, called "Execution Statement" => "Imperative Statement".       (***)
+
+08. Execution statements could *NOT* be used in React JSX sentence.                     <--- ***
+    - Example:
+            if statement,
+            for statement,
+            return statement,
+            switch ~ case statement,
+            etc.
+
+09. Line by line in React JSX is converted into the "React.createElement" statement,
+    Except for round brackets `()`.                                                     <--- ***   
+
+10. JSX sentence is to simplify the complex of "React.createElement" function call.
+    - Thus, A JSX sentence is a simplified once "React.createElement" invocation.       <--- ***
+    - So, A JSX sentence returns a React virtual DOM element.                           <--- ***
+    - As a result, A JSX sentence could be saved into a variable or an Array.           <--- ***
+
+    - Example:
+
+        /**
+         * Warning: Each `child` in a `list` should have a unique "key" prop.     <--- ***
+         * Check the top-level render call using <ul>.
+         * 
+         * See https://reactjs.org/link/warning-keys for more information. at li
+         */
+        const children = [      // An TypeScript or JavaScript Array.   (***)
+            <li>Item1</li>,     // A JSX sentence == React.createElement == React virtual DOM element.
+            <li>Item2</li>,     // A JSX sentence == React.createElement == React virtual DOM element.
+            <li>Item3</li>      // A JSX sentence == React.createElement == React virtual DOM element.
+        ]
+
+        // Using a `brace({})` in React JSX, insert the above Array.    (***)
+        const rootVirtualDOM = <ul>{ children }</ul>
+
+        const root = ReactDOM.createRoot(document.querySelector("#root") as HTMLElement)
+        root.render(rootVirtualDOM)
+
+11. The *Caution* When Creating JSX Statements In An Array :
+    - If there are several components in React JSX, Definitely Obey the rules of XML.   <--- ***
+    - In XML syntax, An XML element could *NOT* be existed without *Parent*.            <--- ***
+    - JSX is also XML. Thus, An array including several JSX components, 
+      "{children}" could *NOT* be existed without a *parent* element.                   <--- ***
+
+    - Example: An array including several JSX components used without a parent element;
+
+        const children = [
+            A JSX sentence1,
+            A JSX sentence2,
+            ...
+        ]
+
+        const rootVirtualDOM = { children }         // XX: Without a parent element in XML
+
+12. To Convert An Data Array Into An React JSX Array
+    Using "Array.map" method:
+
+    - In XML, Parent element is * required *.
+
+    - Example:
+
+        import ReactDOM from "react-dom/client"
+
+        const children = [ 0, 1, 2 ].map( (n: number) => <h3>Hello, World! - {n}</h3> )
+        const rootVirtualDOM = <div>{ children }</div>      // Parent element is * required *
+        ...
+
+
+

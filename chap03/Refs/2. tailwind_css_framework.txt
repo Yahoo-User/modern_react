@@ -1,0 +1,303 @@
+*************************************
+* Tailwind CSS framework            *
+*************************************
+
+01. Background of PostCSS
+    - CSS has experienced trouble like "vendor-prefix" historically.
+    - To overcome the trouble, "Sass/SCSS" style language has created.
+    - "Sass/SCSS" has programming language features like for-loop and provides plugins, 
+      like "autoprefixer" to solve vendor-prefix.
+    - In fact, several well-known CSS frameworks including Bootstrap are made through "Sass/SCSS".
+    - Like ES5 extended to the ESNext, putting up the banner of "Modularized CSS",
+      New "PostCSS" style language and programs to run this are created in CSS.
+
+
+02. PostCSS
+    - Tool for transforming styles with JS plugins.                         <--- ***
+    - This makes "Sass/SCSS" original feature, "autoprefixer" as a plugin.
+    - autoprefixer parses CSS and add vendor prefixes to CSS rules
+      using values from the Can I Use website.                              <--- ***
+    - This re-processes CSS processed firstly by webpack, then makes it to the last CSS.  <--- ***
+    - This is a plugin of the Webpack.                                      <--- ***
+    - This is a program to execute itself's plugins.                        <--- ***
+    - CSS designer prefers the "PostCSS" than "Sass/SCSS" gradually.        <--- ***
+
+
+03. Tailwind CSS framework
+    - A "utility-first" CSS framework for rapidly building custom user interfaces.        <--- ***
+    - The advanced CSS framework to act in way of a PostCSS plugin.         <--- ***
+
+
+04. How to use Tailwind CSS ?
+    - The most used CSS framework together with Bootstrap currently.
+    - Running as a plugin of PostCSS ver 8
+    - It is the advantages that there are 16 kinds of High-level CSS framework based on the Tailwind CSS.
+
+    - ---------------------------------------------------------------
+    - Step1. Install PostCSS, autoprefixer And Tailwind CSS.
+    - ---------------------------------------------------------------
+      ○ From CSS point of view, compatiblity problems between web browers is the vendor-prefix problem.
+      ○ autoprefixer is the representational PostCSS plugin.
+      ○ autoprefixer plays the role in solving the vendor-prefix problem.
+      ○ Even through vendor prefix *NOT* attached in user CSS,
+        autoprefixer creates the CSS with vendor prefix automatically in post-process.
+      ○ To use autoprefixer, like Tailwind CSS, it is the plugin of PostCSS.
+        Thus, You have to install PostCSS.
+
+          > npm i -D postcss autoprefixer tailwindcss                         <--- ***
+
+    - ---------------------------------------------------------------
+    - Step2. Create a PostCSS & Tailwind CSS Configuration File
+    - ---------------------------------------------------------------
+      ○ Tailwind CSS acts as a plugin of PostCSS like autoprefixer.
+      ○ The PostCSS configuration file is the "postcss.config.js" file.       <--- ***
+      ○ If PostCSS can run the Tailwind CSS as a plugin,
+        Register Tailwind CSS to the "postcss.config.js" file, .              <--- ***
+      ○ Tailwind CSS also has it's configuration file, "tailwind.config.js".  <--- ***
+      ○ Tailwind CSS provides a command to create two configuration file
+        of PostCSS and itself like the following:
+
+          * tailwindcss init [--full] [--postcss] [options...]
+            --postcss            Load custom PostCSS configuration
+
+          > npx tailwindcss init -p / --postcss                               <--- ***
+
+          Created Tailwind CSS config file: "tailwind.config.js"              <--- ***
+          Created PostCSS config file: "postcss.config.js"                    <--- ***
+
+      ○ PostCSS default configuration in "postcss.config.js" file :
+
+          module.exports = {
+            plugins: {
+              tailwindcss: {},
+              autoprefixer: {},
+            },
+          }
+
+      ○ Tailwind CSS default configuration in "tailwind.config.js" file :
+
+          /** @type {import('tailwindcss').Config} */
+          module.exports = {
+              content: [],
+              theme: {
+                  extend: {},
+              },
+              plugins: [],
+          }
+
+    - ---------------------------------------------------------------
+    - Step3. Install "daisyui" Package
+    - ---------------------------------------------------------------
+      ○ daisyUI - Tailwind CSS Components.                                  <--- ***
+      ○ Tailwind CSS is a low-level framework to develop a CSS framework like Bootstrap easily.
+        Thus, Tailwind CSS itself doesn't provide so-called "CSS components" used like `btn btn-primary`.
+      ○ There are many Tailwind CSS components like the components that Bootstrap provides,
+        and these all act as plugins of the Tailwind CSS.
+
+        Out of these, there is a plugin, called "daisyui" free to use.
+      ○ Install the following command:
+
+          > npm i -D daisyui                                                <--- ***
+
+    - ---------------------------------------------------------------
+    - Step4. Install "@tailwindcss/line-clamp" Plugin.
+    - ---------------------------------------------------------------
+      ○ A plugin that provides utilities for visually truncating text
+        after a fixed number of lines.                                      <--- ***
+      ○ Tailwind CSS provides "Plugin System" to append various new features,
+        except default provided features.
+      ○ All packages whose name of Tailwind CSS plugins has the prefix, "@tailwindcss/"
+        are made and provided directly by Tailwind CSS provider.
+
+        These packages enables to use new features which Tailwind CSS doesn't provide by default.
+      ○ This example uses a "@tailwindcss/line-clamp" plugin
+        to cut the lines as the specified line number in a text and display it:
+
+        Thus, install this plugin like the following:
+
+          > npm i -D @tailwindcss/line-clamp                                <--- ***
+
+      ○ By this time, "devDependencies" of the "package.json" related with Tailwind CSS:
+
+          "devDependencies": {
+              ...
+              "@tailwindcss/line-clamp": "^0.4.4",      <--- ***
+              "autoprefixer": "^10.4.16",               <--- ***
+              "daisyui": "^4.4.14",                     <--- ***
+              "postcss": "^8.4.31",                     <--- ***
+              "tailwindcss": "^3.3.5"                   <--- ***
+              ...
+          }
+
+    - ---------------------------------------------------------------
+    - Step5. Configure Tailwind CSS
+    - ---------------------------------------------------------------
+      ○ The configuration file of Tailwind CSS is "tailwind.config.js".   <--- ***
+      ○ All features provided by Tailwind CSS which are *NOT* used should be removed.
+        When `npm run build`, the size of last CSS could be minimized.
+      ○ Configure like the following:
+
+          /** @type {import('tailwindcss').Config} */
+          module.exports = {
+              content: [
+                "./src/**/*.{js,jsx,ts,tsx}",             <--- *** : Use the contents of the specified files
+              ],
+              theme: {
+                  extend: {},
+              },
+              plugins: [
+                  require('@tailwindcss/line-clamp'),     <--- *** : Register "@tailwindcss/line-clamp" plugin
+                  require('daisyui')                      <--- *** : Register "daisyui" plugin
+              ],
+          }
+
+    - ---------------------------------------------------------------
+    - Step6. Apply Tailwind CSS Features
+    - ---------------------------------------------------------------
+      ○ To use Tailwind CSS, The following 3-rules appended in the "src/index.css" file:  <--- ***
+
+          // at-rules (@-rules) appended.
+          @tailwind base;                       <--- ***
+          @tailwind components;                 <--- ***
+          @tailwind utilities;                  <--- ***
+
+        With these, All The preparation to use Tailwind CSS is done.                      <--- ***
+      
+      ○ Write test codes in "src/App.tsx" and assert whether Tailwind CSS runs correctly. 
+
+    - ---------------------------------------------------------------
+    - Step7. Write Test Code
+    - ---------------------------------------------------------------
+      ○ To "src/pages/TailwindcssTest.tsx" file.
+
+      ○ The purpose of test code is assert whether Tailwind CSS applied correctly.
+
+      ○ How to use Tailwind CSS in React Project ?  <--- ***
+
+        Using it in way of applying CSS class names like "bg-black/70, line-clamp-3"
+        to the "className" property of a React Component.
+
+        Example:  <p className="w-full p-4 text-3xl text-white">Tailwind CSS</p>
+
+
+05. How to set color ?
+
+    - Color is the import design element to determine feel of Web page.
+
+    - CSS provides some style properties with containing 'color' word:
+        ① background-color  - Background Color
+        ② border-color      - The edge color of a HTML element
+        ③ color             - Text Color
+
+    - CSS Color Model & rgb, hsl Function
+      ○ Most broadly used methods to present a color are :
+        ① RGB Model
+           ■ With symbol, '#' means 16-base number, color presented in way of a #R-G-B method.
+           ■ Color is the range between 0 and 255 by 16-base number.
+           ■ The following table show various method to display main colors:
+
+              * Back    : rgb(0, 0, 0)      / #000000   / hsl(0, 100%, 0%)
+              * White   : rgb(255,255,255)  / #ffffff   / hsl(0, 100%, 100%)
+              * red     : rgb(255, 0, 0)    / #ff0000   / hsl(0, 100%, 50%)
+
+        ② HAL Model
+           ■ Hue - Saturation - Light
+
+    - CSS provides two functions to set a color are :
+        ① rgb
+        ② hsl
+
+
+06. CSS's `opacity` Style Property and `rgba`, `hsla` CSS Function
+    - CSS provides style propertiy with named, `opacity' to present the opacity of a color.
+    - Opacity is also called, "Alpha Value".
+      Alpha value, number of 0 ~ 1 range.
+    - If alpha == 0, it means fully transparency.
+      If alpha == 1, it means fully non-transparency.
+    - CSS also provides `rgba`, `hsla` CSS functions that present color and alpha simultaneously.
+    - Example:
+
+        // Set background color to black & alpha 40%(0.4)
+        background-color: rgba(0, 0, 0, .4)
+
+
+07. Tailwind CSS Color Classes
+
+    - This provides color `classes` according to the `color` style propery.
+
+    - Example: 
+    
+        // The following Tailwind CSS sample classes :
+        bg-black/70, text-white, text-gray-50
+
+    - Tailwind CSS provides `achromatic` color classes
+      with the rules of name like the following:
+
+        // Rule of achromatic color based on black/white.
+        prefix-color/opacity                  <--- ***: Here, `opacity` could be omitted.
+
+    - Tailwind CSS provides `chromatic` color classes
+      wih red, blue, and so on like the following:
+
+        // Rule of chromatic color based on red, gree, blue.
+        prefix-color-chroma/opacity           <--- ***: Here, `opacity` could be omitted.
+
+    - Tailwind CSS Color Prefixes :
+
+      ○ bg      - background-color
+      ○ text    - About text : font-size, line-height
+      ○ border  - border
+      ○ mb      - margin-bottom
+      ○ p       - padding
+      ○ w       - width
+      ○ h       - height
+      ○ mt      - margin-top
+      ○ table   - display: table;
+      ○ ml      - margin-left
+      ○ normal-case   - text-transform: none;
+      ○ 
+      ○ 
+      ○ 
+      ○ 
+      ○ 
+      ○ 
+      ○ 
+      ○ 
+      ○ 
+      ○ 
+      ○ 
+      ○ 
+      ○ 
+      ○ 
+      ○ 
+      ○ 
+      ○ 
+      ○ 
+      ○ 
+      ○ 
+      ○ 
+    
+    - Black/White are `achromatic` color, so No concept of "saturation". Only, Opacity exists.
+      Thus, Tailwind CSS provides the classes named, "prefix-(black or white)/opacity" form
+      like 'bg-black/70'.                                           <--- ***
+
+    - On the other hands, About `chromatic` colors, it provides the classes named, 
+      "prefix-color-saturation/opacity" form like 'text-gray-50'.   <--- ***
+
+      Here, saturation divides into 10 numbers in detail like 50, 100, 200, ..., 900 (Total 10 numbers)
+      So, The larger saturation number, The darker color.           <--- ***
+
+    - Opacity limits the number between 20 and 100 (20 ~ 100), 
+      and incremented by 5 or 10.                                   <--- ***
+
+      Example: bg-black/20    => The most transparent color.
+               bg-black/100   => The most opaque color.
+
+    - 
+
+
+
+
+
+
+

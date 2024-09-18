@@ -1,0 +1,339 @@
+*******************************************************
+* 04-2. Understanding "useMemo" & "useCallback" Hooks *
+*******************************************************
+
+01. The principle of React Hook
+    - To understand React Hook, You first must know the scope of a variable.      <--- ***
+    - In all programming language, A variable have "valid scope".
+
+      ○ Example:
+
+        In the following code, "local" is only valid in the brace, {}
+        and automatically destroyed outside the brace, {}.                        <--- ***
+
+            {
+                const local = 1
+            }
+
+    - In almost programming language including TypeScript,
+      ○ The range inside a brace, {} is called, "Block Scope".      (***)
+      ○ The variable insode a brace is called, "Local Variable".    (***)
+
+    - The concept of a local variable also applys to the function body.          <--- ***
+      ○ The function body have a brace, {}
+      ○ But the brace, {} is "Block Scope".                                     (***)
+      ○ Thus, When meeting "return" statement,
+        It gets out of the function body and local variable is also destroyed.  (***)
+      ○ Example :
+
+            export default function useOrCreate() {
+                const local = 1
+                return <p>{local}</p>
+            } // useOrCreate
+
+
+02. State & Cache
+    - In programming, "State" means that 
+      It preserves the value, regardless of a variable scope,                   <--- ***
+
+    - 2-Types of State:                                                         <--- ***
+      ① Immutable State
+         a. If state sets a value *ONCE*, The value could *NOT* be changed.
+         b. Read-only Concept
+      ② Mutable State 
+         a. It keeps the value, But the value could be changed anytime.
+
+    - Function Component cannot have State due to itself is function.
+      Thus, Function cannot have State because of Block Scope Conept.           <--- ***
+
+    - The only way that function have State is a State variable gets out of function body,
+      and it could *NOT* be affected by Block Scope.                            <--- ***
+
+    - The variable outside Block Scope is called, "Global Variable".            <--- ***
+
+      ○ Example : The following code is to show a global variable.
+
+          const global = 1      // Global variable.
+
+          export default function UseOrCreate() {
+              return <p>{global}</p>
+          } // UseOrCreate
+
+    - React Hook makes a function component which cannot have State acts like it have State.  <--- ***                                                        <--- ***
+      ○ To extend this concept, 
+        The "cache" like making a "global" variable can be implemented. (***)
+
+    - "Cache" is a temporary repository which it copies data or values in advance.            <--- ***
+      ○ Cache is used to save time to re-calulate values or to access the original data.  (***)
+
+
+03. Implementing Cache
+
+    - "Record" type provided by default in TypeScript.
+
+      ○ When a property of an object is a "key" and the property's value is a "value",
+        "Record" is a generic type, "Record<KeyType, ValueType>".
+
+    - Example:
+
+        // After creating cache, The cache is useful anywhere.  (***)
+        const cache: Record<string, any> = {}   // Declared as a Global variale.  <--- *** : ①
+
+        export
+        const useOrCreate = <T>(key: string, cb: () => T): T => {
+            // If "cache[key]" don't have a value,
+            // the value created by "callback" saved into the "cache[key]".       <--- *** : ②
+            if(!cache[key]) cache[key] = cb()
+
+            // Interstingly, The callback invoked only *ONCE*
+            // This feature accords with the concept of Cache.                    <--- *** : ④
+
+            // This generic function always returns the value of "cache[key]".    <--- *** : ③
+            return cache[key] as T
+        } // useOrCreate
+
+
+04. Using a Cache
+
+    - Example:
+              Value                     ValueType     Key                          Returns Value
+           ----------                   ---------- -----------        --------------------------------------------
+      const headTexts = useOrCreateCache<string[]>("headTexts", () => ["No", "Name", "Job Title", "Email Address"]);
+
+            Value                   ValueType     Key                              Returns Value
+           -------                  -----------  --------    ------------------------------------------------------
+      const users = useOrCreateCache<D.IUser[]>( "users",    () => D.makeArray<number>(100, 0).map(D.makeRandomUser));
+
+
+05. Cache & DL (Dependency List)
+
+    - The "Cache" is managed inside React framework.                            (***)
+    - When some situation occured, The "Values" in the "Cache" must be updated. (***)
+    - The element which makes a "Cache" updated is called, "Dependency".        (***)
+    - An array comprised of "Dependencies" is called, "Dependency List".        (***)
+
+    - React framework automatically updates values in "Cache"
+      and applies updated values in "Cache" to be re-rendered,
+      When the condition of any one of DL(Dependency List) fullfilled.          <--- ***
+
+    - If the "Update" of "Cache" is *NOT* necessary (== That is, No dependencies any more),
+      The "DL"(Dependency List) should become only an empty array ([]).         <--- ***
+
+      Step ① Some dependency in each Functional Component changed. (***)
+
+              [ On Each Functional Component ] 
+
+                  - In Used React Hooks -
+                    "useState"
+                    "useMemo([DL])"         // A dependency of DL changed #1    <--- ***
+                    "useCallback([DL])"     // A dependency of DL changed #2    <--- ***
+                    "useReducer"
+                    "useRef"
+                    ...
+
+      Step ② Through applying a changed dependency,
+              The Cache values automatically updated.      (***)
+
+      Step ③ The Cache Value Updates are auto-appliying.  (***)
+
+              [ Cache Management Inside The React Framework ]
+
+                  const Component_Cache = {
+                      key1: value1,     // Auto-Updated#1 when ① -> ② -> ③  <--- ***
+                      key2: value2,
+                      key3: value3,     // Auto-Updated#2 when ① -> ② -> ③  <--- ***
+                      ...
+                  }
+          
+      Step ④ React Component Re-Rendered.                 (***)
+
+
+06. The Reason To Use Functional Components and React Hooks
+
+    - React always re-rendered to applying latest values
+      when a component's property value changed.                                <--- ***
+
+    - It's difficult for React to detect the time of re-rendering the component
+      inside a component's logic. (***)
+
+      Because of this, The "class" component implements various methods
+      and enables it to detect whether the component is re-rendered or not.
+
+    - On the other hand, If the "functional" component uses "React Hooks",
+      React framework *ONLY* evaluates the changes of DL.                       <--- ***
+      This enables to more easily detect whether the component is re-rendered or not.
+
+    - As a result, Even though *NOT* implementing methods hard to understand in Class component, 
+      The development of Functional Component are more easy to implment than Class component.
+
+
+07. React "useMemo" Hook To Cache Data
+
+    - "react" package provides "useMemo" React hook to cache data.              <--- ***
+    - "memo" in name of hook means "memoization":
+
+      "Memoization" : 
+        When a computer program must repeat the same calculation,
+        a technology that speeds up program execution
+        by eliminating repeated execution of the same calculation
+        and by storing previously calculated values in memory.
+
+    - "Memoization" is the method to cache already the past evaluated values
+       when using repreatedly the past evaluated values and to speed up the overall evaluation.
+
+    - The usage of "useMemo" Hook:
+
+      Step1. Import "useMemo" React Hook
+
+          import { useMemo } from "react"
+
+      Step2. Understanding the usage of "useMemo" hook
+
+          Usage:
+
+              cont cachedData = useMemo(callback, DL)
+
+              Here, "callback" : () => Expression(to return cachedData)
+                    "DL" (Dependency List) => [ Dependency1, Dependency2, ... ]
+      
+          ○ Including "useMemo", Like "useCallback", "useEffect", React Hook which has "DL"
+            invokes automatically "callback" to apply the changed dependency
+            whenever any one dependency in "DL" changed.  (***)
+
+          ○ The "useMemo" hook is a generic function in TypeScript :
+
+              function useMemo<T>(callback: () => T, deps: DependencyList | undefined): T
+
+              Here, "T" type variable is the type of cached data.
+
+      Step3. Example of "useMemo" Hook:
+
+          ○ Please refer to the "src/pages/Memo.tsx" source file.
+
+          ○ Instead of using "useOrCreateCache" generic function, use "useMemo" React hook.
+
+          ○ "head" uses internally "headTexts".
+            Thus, "head" -> "headTexts". (Dependency Relationship)          <--- ***
+            (If "headTexts" changed, The "head" also must be changed.)
+
+            So, append "headTexts" into the "DL" (Dependency List)          <--- ***
+
+          ○ "body" also depends on "users". ( "body" -> "users" )           <--- ***
+            (If "users" changed, The "body" also must be changed.)
+
+            So, append "users" into the "DL" (Dependency List)              <--- ***
+
+
+08. "useCallback" Hook To Cache Callback Functions
+
+    - The following code is extract sub codes in 02-5:
+
+      import type { SyntheticEvent } from "react"
+
+      export default function ReactOnClick() {
+          const onClick = (e: SyntheticEvent) => { ... }
+          return <button onClick={ onClick }>Click Me</button>
+      } // ReactOnClick
+
+      ○ In above, "onClick" callback function is re-created 
+        whenever re-rendering the component.  (***)
+        Thus, It's so in-effective.
+
+      ○ At this time, If "onClick" callback is cached in "useCallback" hook,
+        Then it's good.                                                     <--- ***
+
+    - "useMemo" Hook is to cache Data.
+      Thus, It cannot cache "functions" like "onClick" callback.            <--- ***
+
+      So, React provides the "useCallback" hook to cache function body.     <--- ***
+
+    - How to use "useCallback" Hook ?
+
+      ○ Step1. Import "useCall" Hook.
+
+          import { useCallback } from "react"
+
+      ○ Step2. The concept of "useCallback" is like "useMemo" Hook.
+               Just, the difference between two hooks is to cache callback function by "useCallback".
+               and "useMemo" caches data or return value of a function.     <--- ***
+
+          The usage of "useCallback":
+
+              const cached_callback = useCallback(originalCallback, DL)       <--- ***
+
+          The definition of "useCallback":
+
+              function useCallback<T extends (...args: any[]) => any>(
+                  callback: T,
+                  deps: DependencyList
+              ): T                                                            <--- ***
+
+            Here, Type variable, "T" has type constraint (T extends (...args: any[]) => any).
+            This means that type variable, "T" must be a *function*.          <--- ***
+
+          Example1: *NOT* recommended
+
+              const onClick = useCallback(() => alert('button clicked'), [])
+
+              Here, because that "callback" always is re-created,
+              it's not good. (***)
+
+          Example2: *Recommend*                                               <--- ***
+
+              const callback = () => alert('button clicked')  // Created just *ONCE*
+              const onClick = useCallback(callback, [])
+
+              a. Here, type of the "callback" is "() => void".
+              b. The "callback" parameter declaration, "()" becomes "(...args: any[])"
+                 if using spread operator(...).
+              c. Lastly, "callback" returns "void", and it's the "child" of "any" type.
+
+              As a result, the above "callback" is proper. 
+
+    - Example: Please refer to the "src/pages/Callback.tsx" source.
+
+      ○ Disadvantages : It's hard to know which button was clicked when click event occured.  <--- ***
+
+
+09. Understanding & Using High-Order Function
+
+    - In functional programming, There is no difference between "function" and "variable".    <--- ***
+      Thus, A function could be used as a "input parameter" or a "return value" of other function.
+
+    - What is a "High-order" function ?                                                       <--- ***
+      "High-order" function mean that it returns the other function.  (***)
+
+    - In React, High-order function is "mainly" used to 
+      supplementally "transfer" some information to "callback".                               <--- ***
+
+    - Example:  const onClick = useCallback((name: string) => () => alert(`${name} clicked.`), [])
+
+        Here, "callback" is a "High-order" function that 
+        returns a function: () => alert(`${name} click.`) and "name" is a "Closure".  (***)
+        and when a button clicked, it is able to know which button was clicked.       (***)
+
+    - Why implment a High-order function in React Programming ?
+      ○ To resolve a function's "type mistach". (***)
+
+      ○ "onClick" property in React component must be set to "callback", type: () => void     <--- ***
+        Thus, Required variables cannot be transfered inside "callback" like the following:
+
+          // The "name" variable couldn't be transfered into "callback",
+          // Due to the function type mismatch: "() => void".
+          () => alert(`${name} clicked.`)
+
+      ○ But if implementing "callback" using a "High-Order" function,
+        It could return the "callback" of type: "() => void" which the "onClick" property requires
+        and it could transfer data into the "callback body" like the following:
+
+          // It's possible to match callback type and transfer data used in callback.
+          (name: string) => () => alert(`${name} clicked.`)
+
+    - Example: 
+
+        Please refer to the "src/pages/HighOrderCallback.tsx".
+
+
+10. 
+
+    - 

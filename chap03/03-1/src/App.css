@@ -1,0 +1,12 @@
+* {
+  margin: 0 0;
+  padding: 0 0;
+}
+
+body {
+  margin: 0 15px
+}
+
+.text-blue { color: blue; }
+.text-red  { color: red;  }
+

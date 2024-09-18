@@ -1,0 +1,29 @@
+*************************************
+* Type of a Functional Component    *
+*************************************
+
+01. The function prototype of "React.createElement" in 02-1 before:
+        
+    function createElement<P extends {}>(
+        type        :                                                               
+            ① FunctionComponent<P>    |     <--- ***
+            ② ComponentClass<P>       |
+            ③ string,
+        props?      : Attributes & P | null,
+        ...children : ReactNode[]
+    ): ReactElement<P>;
+
+    * Here, Type Parameter "P" is the "Properties Type". (***)
+
+    - In above, `Functional` Component type is ① `FunctionComponent<P>`.       <--- ***
+    - In above, `Class` Component type is ② `ComponentClass<P>`.               <--- ***
+
+02. ① FunctionComponent<P> in above,
+    - React provides `FC` type due to type `FunctionComponent<P>` is too long.  <--- ***
+
+        import type { FC } from "react"
+
+        type FC<P = {}> = FunctionComponent<P>;                                 <--- ***
+
+    - Thus, Functional Component type is `FC<P>`.                               <--- ***
+

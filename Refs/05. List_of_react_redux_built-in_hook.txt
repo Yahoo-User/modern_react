@@ -1,0 +1,41 @@
+*******************************************************
+* 05. List of Built-in React-Redux Hooks              *
+*******************************************************
+
+01. useSelector
+
+	interface UseSelector {
+		<TState = unknown, Selected = unknown>(selector: (state: TState) => Selected, equalityFn?: EqualityFn<Selected>): Selected;
+		<TState = unknown, Selected = unknown>(selector: (state: TState) => Selected, options?: UseSelectorOptions<Selected>): Selected;
+	}
+
+	■ A hook to access the redux store's state.
+	  This hook takes a selector function as an argument.
+	  The selector is called with the store state.
+	  This hook takes an optional equality comparison function as the second parameter
+	  that allows you to customize the way the selected state is compared to determine
+	  whether the component needs to be re-rendered.
+	  -----------------------------------------------------
+	  redux 저장소의 상태에 액세스하기 위한 후크입니다.
+	  이 후크는 selector 함수를 인수로 사용합니다.
+  	  selector는 store state와 함께 호출됩니다.
+	  이 후크는 컴포넌트를 재렌더링해야 하는지 여부를 결정하기 위해,
+	  선택한 상태를 비교하는 방식을 사용자 정의할 수 있는,
+	  두 번째 매개 변수로 선택적인 동등비교함수를 사용합니다.
+
+	  @param selector — the selector function
+	  @param equalityFn — the function that will be used to determine equality
+	  @returns — the selected state
+
+	■ Example :
+
+		import React from 'react'
+		import { useSelector } from 'react-redux'
+
+		export const CounterComponent = () => {
+			const counter = useSelector(state => state.counter)
+			return <div>{counter}</div>
+		}
+
+
+02. 

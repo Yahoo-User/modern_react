@@ -1,0 +1,982 @@
+*******************************************************
+* 01. Type Defintions                   		      *
+*******************************************************
+
+
+01. useSelector<TState, Selected>(
+		selector: (state: TState) => Selected,
+		equalityFn?: EqualityFn<Selected>
+	): Selected;
+	================================================
+	import {useSelector} from "react-redux"
+	================================================
+	A hook to *access* the "redux store's state".
+	This hook takes a "selector" function as an argument.
+	The "selector" is called with the "store state".
+	This hook takes an optional equality comparison function as the second parameter
+	that allows you to customize the way the "selected state" is compared to determine
+	whether the component needs to be "re-rendered".
+	------------------------------------------------
+	"redux 저장소의 상태"에 *액세스*하기 위한 후크입니다.
+	이 후크는 "selector" 함수를 인수로 사용합니다.
+	"selector"는 "저장상태"(store state)로 호출됩니다.
+	이 후크는 컴포넌트를 "재렌더링"해야 하는지 여부를 결정하기 위해, 
+	"선택된 상태"를 비교하는 방식을 사용자 정의할 수 있는 두 번째 매개변수로,
+	선택적인 동등비교 함수를 사용합니다.
+	-----------------------------------------------
+	@param selector      — the "selector" function
+	@param equalityFn    — the function that will be used to determine equality
+	@returns             — the "selected state"
+
+	@example
+
+		import React from 'react'
+		import { useSelector } from 'react-redux'                   <--- ***
+
+		export const CounterComponent = () => {
+			const counter = useSelector(state => state.counter)     <--- ***
+			return <div>{counter}</div>
+		} // CounterComponent
+
+
+02.	function useDispatch<Dispatch<UnknownAction>>(): Dispatch<UnknownAction>
+	================================================
+	import { useDispatch } from 'react-redux'
+	================================================
+	A hook to *access* the redux "dispatch" function.
+
+	@returns — "redux store"'s "dispatch" function
+
+	@example
+
+		import React, { useCallback } from 'react'
+		import { useDispatch } from 'react-redux'
+
+		export const CounterComponent = ({ value }) => {
+			const dispatch = useDispatch()
+			const increaseCounter = useCallback(() => dispatch({ type: 'increase-counter' }), [])
+
+			return (
+				<div>
+					<span>{value}</span>
+					<button onClick={increaseCounter}>Increase counter</button>
+				</div>
+			)
+		}
+ 
+
+03.	interface UnknownAction extends Action { 
+    	[extraProps: string]: unknown;
+	}
+	================================================
+	An "Action type" which accepts any other properties.
+	This is mainly for the use of the "Reducer" type.
+	This is *NOT* part of "Action" itself to prevent types that extend "Action" from having an index signature.
+	------------------------------------------------
+	다른 속성을 허용하는 "작업 유형"(Action type)입니다.
+	이는, 주로 "Reducer" 유형을 사용하기 위한 것입니다.
+	이는, "Action"을 확장하는 유형이 인덱스 서명을 갖지 않도록 방지하기 위한, "Action" 자체의 일부가 아닙니다.
+
+
+04.	interface Dispatch<A extends Action = UnknownAction> {
+		<T extends A>(action: T, ...extraArgs: any[]): T;
+	}
+	================================================
+	A *dispatching function* (or simply *dispatch function*) is a function that
+	accepts an action or an async action; it then may or may not dispatch one
+	or more actions to the store.
+
+	We must distinguish between dispatching functions in general and the base
+	"dispatch" function provided by the store instance without any middleware.
+
+	The base dispatch function *always* synchronously sends an action to the
+	store's reducer, along with the previous state returned by the store, to
+	calculate a new state. It expects actions to be plain objects ready to be
+	consumed by the reducer.
+
+	Middleware wraps the base dispatch function. It allows the dispatch
+	function to handle async actions in addition to actions. Middleware may
+	transform, delay, ignore, or otherwise interpret actions or async actions
+	before passing them to the next middleware.
+	------------------------------------------------
+	*dispatching* function(또는 간단히 *dispatch* function)는 작업(action) 또는 
+	비동기 작업(action)을 받아들이는(accept) 함수입니다. 
+	그런 다음, 하나 이상의 작업을 저장소(Redux Store)에 전달할 수도 있고, 전달하지 않을 수도 있습니다.
+	
+	일반적인 "dispatch" 함수와 "middleware" 없이 스토어 인스턴스에서 제공하는
+	"base dispatch" 함수를 구별해야 합니다.
+
+	"base dispatch" 함수는, 새로운 상태를 계산하기 위해, *항상* 
+		- 저장소에서 반환한 이전상태와 함께,
+		- 작업(action)을
+	저장소의 리듀서에 동기적으로 보냅니다.
+
+	액션은(action), reducer 가 사용할 준비가 된 일반객체 일 것으로 예상됩니다.
+
+	"middleware"는 "base dispatch" function을 래핑합니다.
+	이를 통해, "dispatch" function 가 작업(action) 외에 비동기 작업(action)도 처리할 수 있습니다.
+	"middleware"는 작업(action)이나 비동기 작업(action)을, 다음 미들웨어로 전달하기 전에,
+	변환 / 지연 / 무시 또는 해석 / 할 수 있습니다.
+
+	@template A The type of things (actions or otherwise) which may be dispatched.
+
+
+05.	type Action<T extends string = string> = { 
+		type: T
+	}
+	================================================
+	ⓐ An action is a plain object that represents an intention to change the state.
+	ⓑ Actions are the only way to get data into the store.
+	ⓒ Any data, whether from UI events, network callbacks, or other sources such as WebSockets needs to eventually be dispatched as actions.
+	ⓓ Actions must have a type field that indicates the type of action being performed.
+	ⓔ Types can be defined as constants and imported from another module.
+	ⓕ These must be strings, as strings are serializable.
+	ⓖ Other than type, the structure of an action object is really up to you.
+	--------------------------------------------------------
+	ⓐ 액션은 상태를 변경하려는 의도를 나타내는 일반객체입니다.
+	ⓑ 작업은 데이터를 저장소로 가져오는 유일한 방법입니다.
+	ⓒ UI 이벤트, 네트워크 콜백 또는 WebSocket과 같은 기타 소스의 모든 데이터는 결국 작업으로 전달되어야 합니다.
+	ⓓ 작업에는 수행중인 작업유형을 나타내는 유형(type) 필드가 있어야 합니다.
+	ⓔ 유형은 상수로 정의하고 다른 모듈에서 가져올 수 있습니다.
+	ⓕ 문자열은 직렬화 가능하므로 문자열이어야 합니다.
+	ⓖ 유형(type) 외에, 액션개체의 구조는 실제로 사용자에게 달려 있습니다.
+
+	@template T the type of the action's "type" tag.
+
+
+06. function combineReducers<M>(reducers: M): M[ keyof M ] extends
+		Reducer<any, any, any> | undefined ? Reducer<
+			StateFromReducersMapObject<M>,
+ 			ActionFromReducersMapObject<M>,
+ 			Partial<PreloadedStateShapeFromReducersMapObject<M>>
+		> : never;
+	================================================
+	ⓐ Turns an object whose values are different "reducer" functions, into a single "reducer" function.
+	ⓑ It will call "every" child reducer, and gather their results into a "single" state object,
+	   whose keys correspond to the keys of the passed "reducer" functions.
+	------------------------------------------------------------
+	ⓐ 값이 서로 다른 "reducer" 함수인 개체들를, 단일 reducer 함수로 변환합니다.	(***)
+	ⓑ 모든 child reducer 를 호출하고, 그 결과를 단일상태객체로 수집합니다.		(***)
+	   이 단일상태객체의 키는, 전달된 reducer 함수들의 키와 일치합니다.			 (***)
+
+	@template S - combined state object type.
+
+	@param reducers 
+		An object whose values correspond to different reducer functions that need to be combined into one.
+		One handy way to obtain it is to use `import * as reducers` syntax.
+		The reducers may never return "undefined" for any action.
+		Instead, they should return their initial state if the state passed to them was "undefined",
+		and the current state for any unrecognized action.
+ 		------------------------------------------------------------
+		하나로 결합되어야 하는, 다양한 reducer 함수에 해당하는 값을 가진 객체입니다.
+		이를 얻는 한 가지 편리한 방법은, 'import * as reducers' 구문을 사용하는 것입니다.
+		reducer는 어떤 작업(action)에 대해서도, undefined 상태를 반환하지 않을 수 있습니다.
+		대신, 전달된 상태가 undefined 경우 초기상태를 반환하고, 인식할 수 없는 작업의 경우 현재상태를 반환해야 합니다.
+
+	@returns 
+		A reducer function that invokes every reducer inside the passed object,
+		and builds a state object with the same shape.
+		------------------------------------------------------------
+		전달된 객체 내부의 모든 reducer를 호출하고,
+		동일한 모양(shape)의 상태객체를 생성하는 단일 reducer 함수입니다.
+
+
+07. function forwardRef<T, P = {}>(
+        render: ForwardRefRenderFunction<T, P>,
+    ): ForwardRefExoticComponent<PropsWithoutRef<P> & RefAttributes<T>>;
+	================================================
+
+
+08. interface ForwardRefRenderFunction<T, P = {}> {
+        ① (props: P, ref: ForwardedRef<T>): ReactNode;
+        ② displayName?: string | undefined;
+        ③ defaultProps?: never | undefined;		// defaultProps are not supported on render functions
+        ④ propTypes?: never | undefined;		// propTypes are not supported on render functions
+    }
+	================================================
+
+
+09. type ReactNode =
+        | ReactElement
+        | string
+        | number
+        | Iterable<ReactNode>
+        | ReactPortal
+        | boolean
+        | null
+        | undefined
+        | DO_NOT_USE_OR_YOU_WILL_BE_FIRED_EXPERIMENTAL_REACT_NODES[
+            keyof DO_NOT_USE_OR_YOU_WILL_BE_FIRED_EXPERIMENTAL_REACT_NODES
+        ];
+	================================================
+
+
+10. type ForwardedRef<T> = ((instance: T | null) => void) | MutableRefObject<T | null> | null;
+	================================================
+
+
+11. interface MutableRefObject<T> {
+        current: T;
+    }
+	================================================
+
+
+12. interface ReactElement<
+        P = any,
+        T extends string | JSXElementConstructor<any> = string | JSXElementConstructor<any>,
+    > {
+        type: T;
+        props: P;
+        key: string | null;
+    }
+	================================================
+
+
+08. Chance.Chance.guid(options?: { version: 4 | 5; } | undefined): string
+	================================================
+
+
+09. Chance.Chance.sentence(opts?: Partial<Chance.SentenceOptions> | undefined): string
+	================================================
+
+
+10. Chance.Chance.paragraph(opts?: Chance.Options | undefined): string
+	================================================
+
+
+11. var Date: DateConstructor
+		new () => Date
+		new (value: string | number | Date) => Date
+	================================================
+
+
+12. Date.valueOf(): number
+	================================================
+ 	* Returns the stored time value in milliseconds since midnight, January 1, 1970 UTC.
+
+
+13. DateTime.fromJSDate(date: Date, options?: { zone?: string | Zone | undefined; } | undefined): DateTime
+	================================================
+	Create a DateTime from a JavaScript Date object.
+	Uses the default zone.
+ 
+	@param date          - a JavaScript Date object
+	@param options       - configuration options for the DateTime
+	@param options.zone  - the zone to place the DateTime into
+
+
+14. DateTime.startOf(unit: DateTimeUnit): DateTime
+	================================================
+	"Set" this DateTime to the beginning of the given unit.
+	
+	@param unit - The unit to go to the beginning of.
+				  Can be 'year', 'quarter', 'month', 'week', 'day', 'hour', 'minute', 'second', or 'millisecond'.
+
+	@example: DateTime.local(2014, 3, 3).startOf('month').toISODate();    //  => '2014-03-01'
+
+
+15. DateTime.toRelative(options?: ToRelativeOptions | undefined): string | null
+	================================================
+	* Returns a string representation of this time relative to now, such as "in two days".
+	* Can only internationalize if your platform supports Intl.RelativeTimeFormat.
+	* Rounds down by default.
+ 
+	* @example:    DateTime.now().plus({ days: 1 }).toRelative()                      //  => "in 1 day"
+	* @example:    DateTime.now().setLocale("es").toRelative({ days: 1 })             //  => "dentro de 1 día"
+	* @example:    DateTime.now().plus({ days: 1 }).toRelative({ locale: "fr" })      //  => "dans 23 heures"
+	* @example:    DateTime.now().minus({ days: 2 }).toRelative()                     //  => "2 days ago"
+	* @example:    DateTime.now().minus({ days: 2 }).toRelative({ unit: "hours" })    //  => "48 hours ago"
+	* @example:    DateTime.now().minus({ hours: 36 }).toRelative({ round: false })   //  => "1.5 days ago"
+
+
+16. DateTime.toLocaleString(formatOpts?: Intl.DateTimeFormatOptions | undefined, opts?: LocaleOptions | undefined): string
+	================================================
+	* Returns a localized string representing this date.
+	* Accepts the same options as the "Intl.DateTimeFormat" constructor and 
+	* any presets defined by "Luxon", such as "DateTime.DATE_FULL" or "DateTime.TIME_SIMPLE" of the "DateTime" in the assigned locale.
+	* Defaults to the system's locale if no locale has been specified
+ 
+	* @see — https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DateTimeFormat
+ 
+	* @param formatOpts — "Intl.DateTimeFormat" constructor options and configuration options
+	* @param opts — opts to override the configuration options on this "DateTime"
+ 
+	* @example:    DateTime.now().toLocaleString();                        // => 4/20/2017
+	* @example:    DateTime.now().setLocale('en-gb').toLocaleString();     // => '20/04/2017'
+	* @example:    DateTime.now().toLocaleString({ locale: 'en-gb' });     // => '20/04/2017'
+	* @example:    DateTime.now().toLocaleString(DateTime.DATE_FULL);      // => 'April 20, 2017'
+	* @example:    DateTime.now().toLocaleString(DateTime.TIME_SIMPLE);    // => '11:32 AM'
+	* @example:    DateTime.now().toLocaleString(DateTime.DATETIME_SHORT); // => '4/20/2017, 11:32 AM'
+	* @example:    DateTime.now().toLocaleString({ weekday: 'long', month: 'long', day: '2-digit' });  // => 'Thursday, April 20'
+	* @example:    DateTime.now().toLocaleString({ weekday: 'short', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit' }); // => 'Thu, Apr 20, 11:27 AM'
+	* @example:    DateTime.now().toLocaleString({ hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }); // => '11:32'
+
+
+17. DateTime.local(
+		year: number, month: number, day: number, 
+      	hour: number, minute: number, second: number, millisecond: number, 
+       	opts?: DateTimeJSOptions | undefined
+	): DateTime
+	================================================ 
+	DateTime.local(opts?: DateTimeJSOptions | undefined): DateTime
+	================================================
+	* The calendar year.
+	* If omitted (as in, call local() with no arguments), the current time will be used
+ 
+	* Create a local DateTime
+ 
+	* @example:    DateTime.local()                                  //~> now
+	* @example:    DateTime.local({ zone: "America/New_York" })      //~> now, in US east coast time
+	* @example:    DateTime.local(2017)                              //~> 2017-01-01T00:00:00
+	* @example:    DateTime.local(2017, 3)                           //~> 2017-03-01T00:00:00
+	* @example:    DateTime.local(2017, 3, 12, { locale: "fr")       //~> 2017-03-12T00:00:00, with a French locale
+	* @example:    DateTime.local(2017, 3, 12, 5)                    //~> 2017-03-12T05:00:00
+	* @example:    DateTime.local(2017, 3, 12, 5, { zone: "utc" })   //~> 2017-03-12T05:00:00, in UTC
+	* @example:    DateTime.local(2017, 3, 12, 5, 45)                //~> 2017-03-12T05:45:00
+	* @example:    DateTime.local(2017, 3, 12, 5, 45, 10)            //~> 2017-03-12T05:45:10
+	* @example:    DateTime.local(2017, 3, 12, 5, 45, 10, 765)       //~> 2017-03-12T05:45:10.765
+ 
+
+18. DateTime.toFormat(fmt: string, opts?: LocaleOptions | undefined): string
+	================================================ 
+	* Returns a string representation of this DateTime formatted according to the specified format string.
+	* You may not want this.
+ 
+	* See DateTime.toLocaleString for a more flexible formatting tool.
+	* For a table of tokens and their interpretations, see here.
+ 
+	* Defaults to "en-US" if no locale has been specified, regardless of the system's locale.
+ 
+	* @param fmt — the format string
+	* @param opts — opts to override the configuration options on this DateTime
+ 
+	* @example:    DateTime.now().toFormat('yyyy LLL dd')                      // => '2017 Apr 22'
+	* @example:    DateTime.now().setLocale('fr').toFormat('yyyy LLL dd')      // => '2017 avr. 22'
+	* @example:    DateTime.now().toFormat('yyyy LLL dd', { locale: "fr" })    // => '2017 avr. 22'
+	* @example:    DateTime.now().toFormat("HH 'hours and' mm 'minutes'")      // => '20 hours and 55 minutes'
+
+
+19. var Array: ArrayConstructor new <number>(arrayLength: number) => number[]
+	================================================ 
+ 	* All items of a created Array are "undefined".    							<--- ***
+
+
+20. Array<T>.fill(value: T, start?: number | undefined, end?: number | undefined): => T[]
+	================================================ 
+	* Changes all array elements from "start" to "end" index to a "static" value 
+	* and returns the "modified" array.
+ 
+	* @param value - value to fill array section with
+	* @param start - index to start filling the array at.
+	*                If start is "negative", it is treated as "length + start" 
+	*                where length is the length of the array.
+	* @param end   - index to stop filling the array at.
+	*                If end is negative, it is treated as "length + end".
+
+
+21. Array<number>.map<number>(callbackfn: (value: number, index: number, array: number[]) => number, thisArg?: any): number[]
+	================================================ 
+	* Calls a defined callback function on each element of an array, and returns an array that contains the results.
+ 
+	* @param callbackfn - A function that accepts up to three arguments.
+	*                     The map method calls the callbackfn function one time for each element in the array. (***)
+	* @param thisArg    - An object to which the this keyword can refer in the callbackfn function.
+	*                     If thisArg is omitted, "undefined" is used as the this value.
+
+
+22. function useEffect(
+		// 1. type EffectCallback = () => void | Destructor;                   (***)
+		// 2. type Destructor = () => void | { [UNDEFINED_VOID_ONLY]: never }; (***)
+		effect: React.EffectCallback,
+
+		// 3. type DependencyList = readonly unknown[];                        (***)
+		deps?: React.DependencyList | undefined
+	): void
+	================================================ 
+	* Accepts a function that contains imperative, possibly effectful code.
+	
+	* NOTE1: This does *NOT* accept "strings", 
+	*        but this will have to be fixed by removing "strings" from type "Ref<T>".
+	
+	* NOTE2: callbacks are *ONLY* allowed to return either "void", or a "destructor".
+	*         type EffectCallback = () => void | Destructor;                           <--- ***: ①
+	
+	* NOTE3: "Destructors" are *ONLY* allowed to return "void".
+	*         type Destructor = () => void | { [UNDEFINED_VOID_ONLY]: never };         <--- ***: ②
+	
+	* NOTE4:  type "DependencyList" = "readonly unknown[]";                            <--- ***: ③
+	
+	* @param effect    - Imperative function that can return a "cleanup" function
+	* @param deps      - If present, effect will *ONLY* "activate" if the values in the list "change".
+	
+	* @version 16.8.0
+	* @see https://react.dev/reference/react/useEffect
+
+
+23. function useState<S>(initialState: S | (() => S)): [S, React.Dispatch<React.SetStateAction<S>>]
+	================================================ 
+	* type Dispatch<A> = (value: A) => void;
+	* type SetStateAction<S> = S | ((prevState: S) => S);
+	================================================ 
+	* Returns a stateful value, and a function to update it.
+	* The `initialState` value is used *ONCE*.                     (***)
+
+	* @version 16.8.0
+	* @see https://react.dev/reference/react/useState
+
+
+24. function useCallback<T extends Function>(cb: T, deps: DependencyList): T;
+	================================================ 
+	* "useCallback" will return a "memoized version" of the "callback" that only changes
+	* if one of the "inputs" has changed.
+
+	* "memoize": [verb] (transitive,computing) To store (the result of a computed expression) 
+	*            so that it can be subsequently retrieved without repeating the computation.
+
+	* I made "inputs" required here and in "useMemo" as there's no point to memoizing without the memoization key
+	* "useCallback(X)" is identical to just using X, "useMemo(() => Y)" is identical to just using Y.
+
+	* @version 16.8.0
+	* @see https://react.dev/reference/react/useCallback
+
+
+25. jest.Matchers<void, string>.toBeTruthy(): void
+	================================================ 
+	* Use when you don't care what a value is, you just want to ensure a value is true in a boolean context.
+	* In JavaScript, there are six "falsy" values: ① false  ② 0  ③ ''  ④ null  ⑤ undefined  ⑥ NaN.
+	
+	* Everything else is "truthy".
+
+
+30. jest.Matchers<void, string>.toContain<string>(expected: string): void
+	================================================ 
+	* Used when you want to check that an item is in a list.
+	* For testing the items in the list, this uses ===, a strict equality check.
+	* It can also check whether a string is a substring of another string.
+
+	* Optionally, you can provide a type for the expected value via a generic.
+	* This is particularly useful for ensuring expected objects have the right structure.
+
+
+31. var it: jest.It(name: string, fn?: jest.ProvidesCallback | undefined, timeout?: number | undefined) => void
+	================================================ 
+	* Creates a test closure.
+ 
+	* @param name      - The name of your test
+	* @param fn        - The function for your test
+	* @param timeout   - The timeout for an "async" function test
+
+
+32. jest.Matchers<void, number[]>.toBe<number>(expected: number): void
+	================================================ 
+	* Checks that a value is what you expect.
+	* It uses "Object.is" to check strict equality.
+	* Don't use "toBe" with "floating-point" numbers.
+
+	* Optionally, you can provide a "type" for the "expected" value via a "generic".
+	* This is particularly useful for ensuring "expected" objects have the right structure.
+	
+
+33. const expect: jest.Expect<number[]>(actual: number[]) => jest.JestMatchers<number[]>
+	================================================ 
+	* The expect function is used every time you want to test a value.
+	* You will rarely call expect by itself.
+
+	* @param actual - The value to apply matchers against.
+
+
+36. function useEffect(effect: React.EffectCallback, deps?: React.DependencyList | undefined): void
+	================================================ 
+	* Accepts a function that contains imperative, possibly effectful code.
+	
+	* @param effect — Imperative function that can return a cleanup function
+	* @param deps — If present, effect will only activate if the values in the list change.
+
+	* @version — 16.8.0
+	* @see — https://react.dev/reference/react/useEffect
+
+
+37. function useMemo<T>(factory: () => T, deps: DependencyList | undefined): T;
+	================================================ 
+	* "useMemo" will only recompute the "memoized" value when one of the "deps" has changed.
+	* This allows "undefined", but don't make it optional as that is very likely a mistake.
+
+	* "memoize": [verb] (transitive,computing) To store (the result of a computed expression) 
+	*            so that it can be subsequently retrieved without repeating the computation.
+
+	* @version 16.8.0
+	* @see https://react.dev/reference/react/useMemo
+
+
+38. type Record<K extends string | number | symbol, T> = { [P in K]: T; }
+	================================================ 
+	* Construct a type with a set of properties K of type T
+	
+	* Record type provided by default in TypeScript.
+	* When a property of an object is a "key" and the property's value is a "value",
+	* Record is the generic type, "Record<KeyType, ValueType>".
+
+
+39. interface ChangeEvent<T = Element> extends SyntheticEvent<T> {
+          target: EventTarget & T;
+    }
+	================================================ 
+
+
+40. interface EventTarget {
+		addEventListener(
+			type: string,
+			callback: EventListenerOrEventListenerObject | null, options ?: AddEventListenerOptions | boolean
+		): void;
+		
+		dispatchEvent(event: Event): boolean;
+
+		removeEventListener(
+			type: string,
+			callback: EventListenerOrEventListenerObject | null, options ?: EventListenerOptions | boolean
+		): void;
+	}
+	================================================ 
+
+
+41. interface Component<P = {}, S = {}, SS = any> extends ComponentLifecycle<P, S, SS> {}
+	================================================ 
+
+
+42. interface ComponentLifecycle<P, S, SS = any> extends NewLifecycle<P, S, SS>, DeprecatedLifecycle<P, S> {
+
+        // 1. Called immediately after a component is "mounted".
+        //    Setting "state" here will trigger "re-rendering".
+        componentDidMount?(): void;
+
+        // 2. Called to determine whether the "change" in "props" and "state" should trigger a "re-render".
+        //    "Component" always returns "true".
+        // 
+        //    "PureComponent" implements a shallow comparison on "props" and "state"
+        //    and returns "true" if any "props" or "states" have changed.
+        //
+        //    If "false" is returned,
+        //    "Component#render", "componentWillUpdate" and "componentDidUpdate" will *NOT* be called.
+        shouldComponentUpdate?(nextProps: Readonly<P>, nextState: Readonly<S>, nextContext: any): boolean;
+
+        // 3. Called immediately before a component is "destroyed".
+        //    Perform any necessary "cleanup" in this method,
+        //    such as cancelled network requests, or cleaning up any DOM elements created in "componentDidMount".
+        componentWillUnmount?(): void;
+
+        // 4. Catches "exceptions" generated in "descendant" components.
+        //    Unhandled exceptions will cause the "entire component tree" to "unmount".
+        componentDidCatch?(error: Error, errorInfo: ErrorInfo): void;
+
+    }
+	================================================ 
+
+
+43. interface NewLifecycle<P, S, SS> {	// This should be "infer SS" but can't use it yet.
+
+        // 1. Runs before React applies the result of "render" to the document,
+        //    and returns an "object" to be given to "componentDidUpdate".
+        //    Useful for saving things such as scroll position before "render" causes changes to it.
+        //
+        //    Note: the presence of "getSnapshotBeforeUpdate" prevents any of the "deprecated" lifecycle events from running.
+        getSnapshotBeforeUpdate ? (prevProps: Readonly<P>, prevState: Readonly<S>): SS | null;
+
+        // 2. Called immediately after updating occurs. *Not* called for the "initial" render.
+        //    The snapshot is only present if "getSnapshotBeforeUpdate" is present and returns "non-null".
+        componentDidUpdate ? (prevProps: Readonly<P>, prevState: Readonly<S>, snapshot?: SS): void;
+
+    }
+	================================================ 
+
+
+44. interface DeprecatedLifecycle<P, S> {
+
+        // 1. Called immediately before mounting occurs, and before "Component#render".
+        //    Avoid introducing any side-effects or subscriptions in this method.
+        // 
+        //    Note: the presence of "getSnapshotBeforeUpdate" or "getDerivedStateFromProps" prevents this from being invoked.
+        // 
+        //    deprecated 16.3, use "componentDidMount" or the "constructor" instead; will stop working in React 17.
+        componentWillMount ? (): void;
+
+        // 2. Called immediately before mounting occurs, and before "Component#render".
+        //    Avoid introducing any side-effects or subscriptions in this method.
+        //    This method will *NOT* stop working in React 17.
+        //
+        //    Note: the presence of "getSnapshotBeforeUpdate" or "getDerivedStateFromProps" prevents this from being invoked.
+        // 
+        //    deprecated 16.3, use "componentDidMount" or the "constructor" instead
+        UNSAFE_componentWillMount ? (): void;
+
+        // 3. Called when the component may be receiving new props.
+        //    React may call this even if "props" have *NOT* changed, 
+        //    so be sure to compare new and existing "props" if you only want to handle changes.
+        //    Calling "Component#setState" generally does *NOT* trigger this method.
+        //
+        //    Note: the presence of "getSnapshotBeforeUpdate" or "getDerivedStateFromProps" prevents this from being invoked.
+        // 
+        //    deprecated 16.3, use static "getDerivedStateFromProps" instead; will stop working in React 17
+        componentWillReceiveProps ? (nextProps: Readonly<P>, nextContext: any): void;
+
+        // 4. Called when the component may be receiving new props.
+        //    React may call this even if "props" have *NOT* changed, 
+        //    so be sure to compare new and existing "props" if you only want to handle changes.
+        //    Calling "Component#setState" generally does *NOT* trigger this method.
+        //    This method will *NOT* stop working in React 17.
+        // 
+        //    Note: the presence of "getSnapshotBeforeUpdate" or "getDerivedStateFromProps" prevents this from being invoked.
+        // 
+        //    deprecated 16.3, use static "getDerivedStateFromProps" instead
+        UNSAFE_componentWillReceiveProps ? (nextProps: Readonly<P>, nextContext: any): void;
+
+        // 5. Called immediately before rendering when new "props" or "state" is received. 
+        //    Not called for the "initial" render.
+        // 
+        //    Note: You cannot call "Component#setState" here.
+        //    Note: the presence of "getSnapshotBeforeUpdate" or "getDerivedStateFromProps" prevents this from being invoked.
+        // 
+        //    deprecated 16.3, use getSnapshotBeforeUpdate instead; will stop working in React 17
+        componentWillUpdate ? (nextProps: Readonly<P>, nextState: Readonly<S>, nextContext: any): void;
+
+        // 6. Called immediately before rendering when new "props" or "state" is received.
+        //    *Not* called for the "initial" render.
+        // 
+        //    Note: You cannot call "Component#setState" here.
+        //          This method will *NOT* stop working in React 17.
+        // 
+        //    Note: the presence of "getSnapshotBeforeUpdate" or "getDerivedStateFromProps" prevents this from being invoked.
+        // 
+        //    deprecated 16.3, use getSnapshotBeforeUpdate instead
+        UNSAFE_componentWillUpdate ? (nextProps: Readonly<P>, nextState: Readonly<S>, nextContext: any): void;
+
+    }
+	================================================ 
+
+
+45. type PropsWithChildren < P = unknown > = P & { children?: ReactNode | undefined };
+	================================================ 
+
+
+46. function useRef<T>(initialValue: T): MutableRefObject<T>;
+	================================================ 
+	* "useRef" returns a mutable "ref" object whose ".current" property is initialized to the passed argument ("initialValue").
+	* The returned object will persist for the full lifetime of the component.
+	
+	* Note1: "useRef()" is useful for more than the "ref" attribute.                   <--- ***: ①
+	*        It’s handy for keeping any mutable value around similar to 
+	*        how you’d use instance fields in classes.
+	
+	* NOTE2: Convenience overload for "refs" given as a "ref" prop 
+	*        as they typically start with a "null" value.                              <--- ***: ②
+	*
+	* @version 16.8.0
+	* @see https://react.dev/reference/react/useRef
+	
+	================================================ 
+	function useRef<T>(initialValue: T | null): RefObject<T>;
+	================================================ 
+
+
+47. const imageFileReaderP: (file: Blob) => Promise<string>
+	================================================ 
+
+
+48. Array<T>.from<T>(iterable: Iterable<T> | ArrayLike<T>): T[]
+	================================================ 
+	* Creates an array from an iterable object.
+	
+	* @param iterable — An iterable object to convert to an array.
+
+
+49. Array<T>.map<U>(cb: (value: T, index: number, array: T[]) => U, thisArg ?: any): U[];
+	================================================ 
+	* Calls a defined "cb" function on each element of an array,
+	* and returns an array that contains the results.
+	
+	* @param cb        - A function that accepts up to three arguments.
+	*                    The "map" method calls the "cb" function one time for each element in the array.
+	* @param thisArg   - An object to which the this keyword can refer in the "cb" function.
+	*                    If thisArg is omitted, "undefined" is used as the this value.
+
+
+50. Promise.all<Promise<string>[]>(values: Promise<string>[]): Promise<string[]>;
+	================================================ 
+	* Creates a Promise that is resolved with an array of results
+	* when all of the provided Promises "resolve", or "rejected" when any Promise is rejected.
+
+	* @param values    - An array of Promises.
+	* @returns         - A new Promise.
+
+
+51. then<TResult1 = T, TResult2 = never>(
+		onfulfilled?: ((value: T)     => TResult1 | PromiseLike<TResult1>) | undefined | null,
+		onrejected? : ((reason: any)  => TResult2 | PromiseLike<TResult2>) | undefined | null
+    ): Promise<TResult1 | TResult2>;
+	================================================ 
+	* Attaches callbacks for the resolution and/or rejection of the Promise.
+	
+	* @param onfulfilled   — The cb to execute when the Promise is resolved.
+	* @param onrejected    — The cb to execute when the Promise is rejected.
+	* @returns             — A Promise for the completion of which ever cb is executed.
+	
+
+52. catch<TResult = never>(
+		onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null
+	): Promise<T | TResult>;
+	================================================ 
+	* Attaches a cb for only the rejection of the Promise.
+
+	* @param onrejected    — The cb to execute when the Promise is rejected.
+	* @returns             — A Promise for the completion of the cb.
+
+
+53. finally(onfinally?: (() => void) | undefined | null): Promise<T>;
+	================================================ 
+	* Attaches a cb that is invoked when the Promise is settled (fulfilled or rejected).
+	* The resolved value cannot be modified from the cb.
+	
+	* @param onfinally — The cb to execute when the Promise is settled (fulfilled or rejected).
+	* @returns         — A Promise for the completion of the cb.
+
+
+54. interface DragEvent<T = Element> extends MouseEvent<T, NativeDragEvent> { dataTransfer: DataTransfer; }
+
+
+55. interface Error { cause?: unknown; }
+
+
+56. var Promise: PromiseConstructor
+	================================================ 
+	Represents the "completion" of an "asynchronous" operation
+
+
+57. interface RefObject<T> {
+		readonly current: T | null;
+	}
+	================================================ 
+
+
+58. type EffectCallback = () => void | Destructor;
+	================================================ 
+	NOTE: callbacks are _only_ allowed to return either void, or a destructor.
+
+
+59. function createContext<T>(defaultValue: T): Context<T>;
+	================================================ 
+
+
+60. interface Context<T> {
+        Provider: Provider<T>;
+        Consumer: Consumer<T>;
+        displayName?: string | undefined;
+    }
+	================================================ 
+
+
+61. type Provider<T> = ProviderExoticComponent<ProviderProps<T>>;
+	================================================ 
+
+
+62. type Consumer<T> = ExoticComponent<ConsumerProps<T>>;
+	================================================ 
+
+
+63. interface ProviderExoticComponent<P> extends ExoticComponent<P> {
+        propTypes?: WeakValidationMap<P> | undefined;
+    }
+	================================================ 
+
+
+64. interface ExoticComponent<P = {}> {
+		(props: P): ReactNode;
+        readonly $$typeof: symbol;
+    }
+	================================================ 
+	**NOTE**: Exotic components are not callable.
+
+
+65. interface ProviderProps<T> {
+        value: T;
+        children?: ReactNode | undefined;
+    }
+	================================================ 
+	Context via "RenderProps"
+
+
+66. interface ConsumerProps<T> {
+        children: (value: T) => ReactNode;
+    }
+	================================================ 
+
+
+67. declare function Provider<A extends Action<string> = UnknownAction, S = unknown>(
+      { store, context, children, serverState, stabilityCheck, identityFunctionCheck, }: ProviderProps<A, S>
+    ): React$1.JSX.Element;
+	================================================ 
+
+
+68. interface ProviderProps<A extends Action<string> = UnknownAction, S = unknown> {
+        // The "single" Redux store in your application.
+        store: Store<S, A>;                                       // Required,
+          
+        children: ReactNode;                                      // Required
+        
+        serverState ?: S;                                         // Optional
+        context ?: Context<ReactReduxContextValue<S, A> | null>;  // Optional
+        stabilityCheck ?: DevModeCheckFrequency;                  // Optional
+        identityFunctionCheck ?: DevModeCheckFrequency;           // Optional
+    }
+	================================================ 
+
+
+70. type Reducer<
+		S = any,
+		A extends Action = UnknownAction,
+		PreloadedState = S
+	> = (
+			state: S | PreloadedState | undefined,
+			action: A
+		) => S;
+	================================================ 
+	* A *reducer* is a function that accepts an accumulation and a value and returns a new accumulation.
+	* They are used to reduce a collection of values down to a single value
+	-----------------
+	* *reducer*는 누적과 값을 받아들이고, 새로운 누적을 반환하는 함수입니다.
+	* 값 모음을 단일값으로 줄이는 데 사용됩니다.
+	
+	* Reducers are not unique to Redux — they are a fundamental concept in functional programming. 
+	* Even most non-functional languages, like JavaScript, have a built-in API for reducing.
+	* In JavaScript, it's `Array.prototype.reduce()`.
+	-----------------
+	* 리듀서는 Redux 에만 있는 것이 아닙니다. 함수형 프로그래밍의 기본 개념입니다.
+	* JavaScript와 같은 대부분의 비기능적 언어에도, 축소를 위한 내장 API가 있습니다.
+	* JavaScript에서는 `Array.prototype.reduce()`입니다.
+	
+	* In Redux, the accumulated value is the state object, and the values being accumulated are actions.
+	* Reducers calculate a new state given the previous state and an action.
+	* They must be *Pure functions*—functions that return the exact same output for given inputs.
+	* They should also be free of side-effects.
+	* This is what enables exciting features like hot reloading and time travel.
+	-----------------
+	* Redux에서는 누적된 값이 상태객체이고, 누적될 값이 액션입니다.
+	* 리듀서는 이전상태와 동작을 바탕으로 새로운 상태를 계산합니다.
+	* *순수함수*, 즉 주어진 입력에 대해, 정확히 동일한 출력을 반환하는 함수여야 합니다.
+	* 부작용도 없어야 합니다.
+	* 이를 통해, 핫리로딩(HMR) 및 시간여행과 같은, 흥미로운 기능이 가능해집니다.
+	
+	* Reducers are the most important concept in Redux.
+	* *Do not put API calls into reducers.*
+	-----------------
+	* 리듀서는 Redux에서 가장 중요한 개념입니다.
+	* *리듀서에 API 호출을 넣지 마세요.*
+	
+	* @template S 				The type of state consumed and produced by this reducer.
+	* @template A 				The type of actions the reducer can potentially respond to.
+	* @template PreloadedState 	The type of state consumed by this reducer the first time it's called.
+
+
+72. function configureStore<
+		S = any,
+		A extends Action = UnknownAction,
+		M extends Tuple<Middlewares<S>> = Tuple<[ThunkMiddlewareFor<S>]>,
+		E extends Tuple<Enhancers> = Tuple<[ StoreEnhancer<{ dispatch: ExtractDispatchExtensions<M>; }>, StoreEnhancer ]>,
+		P = S
+	>(options: ConfigureStoreOptions<S, A, M, E, P>): EnhancedStore<S, A, E>;
+	================================================ 
+	* A friendly abstraction over the standard Redux `createStore()` function.
+	-----------------
+	* 표준 Redux `createStore()` 함수에 대한, 친숙한 추상화입니다.
+	
+	* @param options 	The store configuration.
+	* @returns 			A configured Redux store.
+
+
+73. interface ConfigureStoreOptions<
+		S = any,
+		A extends Action = UnknownAction,
+		M extends Tuple<Middlewares<S>> = Tuple<Middlewares<S>>,
+		E extends Tuple<Enhancers> = Tuple<Enhancers>,
+		P = S
+	> {
+		/**
+		* A single reducer function that will be used as the root reducer,
+		* or an object of slice reducers that will be passed to `combineReducers()`.
+		* -------------------------------------------------
+		* root reducer 로 사용될 단일 reducer 함수 
+		* 또는 `combineReducers()`에 전달될 슬라이스 리듀서의 객체.
+		*/
+		ⓐ reducer: Reducer<S, A, P> | ReducersMapObject<S, A, P>;					// *Required*
+
+		/**
+		* An array of Redux middleware to install, or 
+		* a callback receiving `getDefaultMiddleware` and returning a Tuple of middleware.
+		*
+		* If *NOT* supplied, defaults to the set of middleware returned by `getDefaultMiddleware()`.
+		* -------------------------------------------------
+		* 설치할 Redux 미들웨어 배열 또는 `getDefaultMiddleware`를 수신하고 미들웨어 튜플을 반환하는 콜백.
+		*
+		* 제공되지 않은 경우, `getDefaultMiddleware()`에 의해 반환된 미들웨어 세트가 기본값입니다.
+		*
+		* @example `middleware: (gDM) => gDM().concat(logger, apiMiddleware, yourCustomMiddleware)`
+		*
+		* @see https://redux-toolkit.js.org/api/getDefaultMiddleware#intended-usage
+		*/
+		ⓑ middleware?: (getDefaultMiddleware: GetDefaultMiddleware<S>) => M;		// Optional
+
+		/**
+		* Whether to enable Redux DevTools integration.
+		* Defaults to `true`.
+		* Additional configuration can be done by passing Redux DevTools options
+		* -------------------------------------------------
+		* Redux DevTools 통합을 활성화할지 여부입니다.
+		* 기본값은 'true'입니다.
+		* Redux DevTools 옵션을 전달하여, 추가구성을 수행할 수 있습니다.
+		*/
+		ⓒ devTools?: boolean | DevToolsOptions;										// Optional
+
+		/**
+		* The initial state, same as Redux's `createStore`.
+		* You may optionally specify it to hydrate the state from the server in universal apps,
+		* or to restore a previously serialized user session.
+		* If you use `combineReducers()` to produce the root reducer function
+		* (either directly or indirectly by passing an object as `reducer`),
+		* this must be an object with the same shape as the reducer map keys.
+		* -------------------------------------------------
+		* Redux의 `createStore`와 동일한 초기상태입니다.
+		* 유니버설 앱의 서버에서 상태를 수화하거나 이전에 직렬화된 사용자 세션을 복원하기 위해,
+		* 선택적으로 이를 지정할 수 있습니다.
+		* `combineReducers()`를 사용하여 root reducer 함수를 생성하는 경우
+		* (직접적으로 또는 객체를 `reducer`로 전달하여 간접적으로),
+		* 이는 reducer 맵 키와 모양(shape)이 동일한 객체여야 합니다.
+		*/
+		ⓓ preloadedState?: P;														// Optional
+
+		/**
+		* The store enhancers to apply.
+		* See Redux's `createStore()`.
+		* All enhancers will be included before the DevTools Extension enhancer.
+		* If you need to customize the order of enhancers, supply a callback
+		* function that will receive a `getDefaultEnhancers` function that returns a Tuple,
+		* and should return a Tuple of enhancers (such as `getDefaultEnhancers().concat(offline)`).
+		* If you only need to add middleware, you can use the `middleware` parameter instead.
+		* -------------------------------------------------
+		* 적용할 store enhancers 입니다.
+		* Redux의 `createStore()`를 참조하세요.
+		* 모든 enhancers는, DevTools 확장 강화 enhancer보다, 먼저 포함됩니다.
+		* enhancers의 순서를 맞춤설정 해야 하는 경우,
+		* 튜플을 반환하는 `getDefaultEnhancers` 함수를 수신하고, 
+		* enhancers의 튜플(예: `getDefaultEnhancers().concat(offline)`)을 반환해야 하는, 콜백함수를 제공하세요.
+		* middleware 만 추가해야 하는 경우, `middleware` 매개변수를 대신 사용할 수 있습니다.
+		*/
+		ⓔ enhancers?: (getDefaultEnhancers: GetDefaultEnhancers<M>) => E;			// Optional
+	}
+	================================================ 
+
+
+74. 
+
+
+
+
+
+

@@ -1,0 +1,34 @@
+*******************************************************
+* 06. Useful npm Usage                   		      *
+*******************************************************
+
+
+01. npm doctor
+
+02. npm explain <installedPackageName>
+	○ This command will print the chain of dependencies causing a given package to be installed in the current project.
+	○ If one or more package specs are provided,
+	  then only packages matching one of the specifiers will have their relationships explained.
+
+03. npm explore <installedPackageName>
+
+04. npm view/show/v <packageName>
+
+05. npm cache
+   	npm cache verify
+   	npm cache clean --force
+
+06. npm config list
+   
+07. npm version
+
+08. npm update
+   	This command will update all the packages listed to the latest version.
+
+09. npm ci
+	
+10. npm ls --all
+	npm ls -a
+
+
+

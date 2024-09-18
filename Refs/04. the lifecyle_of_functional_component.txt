@@ -1,0 +1,216 @@
+*******************************************************
+* 04. How to check lifecyle of a functional component *
+*******************************************************
+
+
+--------------------------------------
+01. Lifecycle of a React component
+--------------------------------------
+	① Initial Render or Mount
+
+	② Update
+	   ● When the "states" used in the component or "props" added to the component is *CHANGED*)
+
+	③ Unmount
+
+
+--------------------------------------
+02. Merge of "componentDidMount" and "componentDidUpdate"
+--------------------------------------
+
+	■ Example1:
+
+		/*
+			In this variant of "useEffect", the following message will be printed
+			when the component is "mounted" and every time the component "state" or "props" is updated.
+		*/
+			
+		useEffect(() => {
+			console.log("App is mounted or updated.")
+		})
+
+	■ Example2: 
+
+		/*
+			If you want to see logs only when the component rerenders,
+			the simplest way is to make a "useEffect" hook without a "dependency array",
+			this will make it run after each component render:
+		*/
+
+	  	useEffect(() => {
+			console.log("component re-rendered");
+		});
+
+
+--------------------------------------
+03. Equivalent of "componentDidMount"
+--------------------------------------
+
+	■ Example:
+
+		/*
+			In this variant, the message will be printed *ONLY ONCE*
+			in the component’s life cycle and that is after the component is "mounted".
+		*/
+
+		useEffect(() => {
+			console.log("=> App is mounted *ONLY*, *NOT* updated.")
+		}, [])
+
+
+--------------------------------------
+04. Merge of "componentDidMount" and "componentDidUpdate"
+  	but *ONLY* for given "dependency"
+--------------------------------------
+
+	■ Example:
+
+    /*
+        In this variant, the message will be printed
+        when the component is "mounted" and every time the "count state" in DL is changed.
+    */
+
+	useEffect(() => {
+		console.log(“This is *mounted* or *count state* updated.”);
+	}, [count]);
+
+
+--------------------------------------
+05. Equivalent of "componentWillUnmount"
+--------------------------------------
+
+	■ Example:
+
+    /*
+        If we don’t want any side effect to happen on component "mounting" or "updating"
+        but *ONLY* when a component is being "unmounted", then we can use this variant.
+    */
+
+	useEffect(() => {	// Imperative function that can return a "cleanup" function
+		return () => {  // "cleanup" function
+			console.log("This is *unmounted*.");
+		}
+	}, []);
+
+
+--------------------------------------
+06. Controlling re-renders: Pure Components
+---------------------------------
+
+	■ One of the ways to control the "re-rendering" of a component is using "React.memo" Higher Order Component.
+
+	■ "React.memo" uses memoization.
+	  ○ It shallowly compares the "previous props" with "current props" to determine if the props are changed.
+	    If they are changed, then the component is "re-rendered".
+
+	■ We can provide the "custom comparator" to the "React.memo" as well to customize the comparison.
+
+	■ Example1: Using "React.memo" Higher Order Component
+	
+	  ● PureComponent.tsx
+
+		import React from "react";
+​
+		const RegularComponent = (props: any) => {						<--- ***
+			console.log("*** Pure component is rendered ***");
+
+			return <p>Pure Component = {props.name.firstName}</p>;		<--- ***
+		};
+		​
+		const PureComponent = React.memo(RegularComponent);				<--- ***
+		​
+		export {PureComponent};
+
+	■ Example2: OR with comparator
+	
+	  ● PureComponent.tsx
+
+	  	import React from "react";
+​
+
+		const PureComponent = React.memo(											<--- ***
+
+			(props: any) => {														<--- ***
+				console.log("*** Pure component is rendered ***");
+				return <p>Pure Component = {props.name.firstName}</p>;				<--- ***
+			},
+
+			(prevProps, nextProps) => {												<--- ***
+				/*
+					return "true" if passing "nextProps" to render would return
+					the *same* result as passing "prevProps" to render,
+
+					otherwise return "false"
+				*/
+				if (prevProps.name.firstName === nextProps.name.firstName) {		<--- ***
+					return true;
+				}
+
+				return false;														<--- ***
+			}
+
+		);	// React.memo
+		​
+		export { PureComponent };
+
+	  ● RegularComponent.tsx
+
+	  	import React from "react";
+​
+
+		const RegularComponent = (props: any) => {									<--- ***
+			console.log("***Regular component is rendered***");
+			​
+			return <p>Regular Component = {props.name.firstName}</p>;				<--- ***
+		};
+		​
+		export default RegularComponent;
+
+	  ● ParentComponent.tsx
+	  
+	  	import React, { useState } from "react";
+		import {PureComponent} from "./PureComponent";
+		import RegularComponent from "./RegularComponent";
+		​
+
+		const ParentComponent = () => {
+			const [count, setCount] = useState<number>(0);							<--- ***
+
+			const [name, setName] = useState<{ firstName: string }>({				<--- ***
+				firstName: "Yogesh"
+			});
+			​
+			console.log("***** Parent component is rendered *****");
+			​
+			return (
+				<>
+					<p>Parent Component</p>
+
+					<button 
+						onClick={() => {
+							setCount((c) => c + 1);
+						}}
+					>
+						count = {count}
+					</button>
+
+					<button
+						onClick={() => {
+							setName({ firstName: "YPD" });
+						}}
+					>
+						change name
+					</button>
+
+					<RegularComponent name={name} />								<--- ***
+					<PureComponent name={name} />									<--- ***
+				</>
+			);
+		};
+		​
+		export default ParentComponent;
+
+
+
+
+

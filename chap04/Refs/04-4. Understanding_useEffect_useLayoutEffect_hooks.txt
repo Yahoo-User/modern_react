@@ -1,0 +1,699 @@
+************************************************************
+* 04-4. Understanding "useEffect" & "useLayoutEffect" Hook *
+************************************************************
+
+01. This clause explains "useEffect", "useLayoutEffect" React Hooks
+	related to the Ract Component Lifecycle.								<--- ***
+
+
+02. The Lifecycle of a React Component.										<--- ***
+
+	- React framework ① creates ② renders ③ destroys React component.	 (***)		
+
+	- These processes are called, "React Component Lifecycle".				(***)
+
+
+03. React Component Lifecycle.												<--- ***
+	- "class" component is more intuitive than "functional" component
+	  	about React component lifecycle.								(***)
+
+	  	--------------------------------------------------------
+		interface Component<P = {}, S = {}, SS = any> extends ComponentLifecycle<P, S, SS> {}
+
+		--------------------------------------------------------
+		interface ComponentLifecycle<P, S, SS = any> extends NewLifecycle<P, S, SS>, DeprecatedLifecycle<P, S> {
+			// 1. Called immediately after a component is "mounted".
+			//    Setting "state" here will trigger "re-rendering".
+
+			componentDidMount?(): void;
+
+			// 2. Called to determine whether the "change" in "props" and "state" should trigger a "re-render".
+			//    "Component" always returns "true".
+			// 
+			//    "PureComponent" implements a shallow comparison on "props" and "state"
+			//    and returns "true" if any "props" or "states" have changed.
+			//
+			//    If "false" is returned,
+			//    "Component#render", "componentWillUpdate" and "componentDidUpdate" will *NOT* be called.
+
+			shouldComponentUpdate?(nextProps: Readonly<P>, nextState: Readonly<S>, nextContext: any): boolean;
+
+			// 3. Called immediately before a component is "destroyed".
+			//    Perform any necessary "cleanup" in this method,
+			//    such as cancelled network requests, or cleaning up any DOM elements created in "componentDidMount".
+
+			componentWillUnmount?(): void;
+
+			// 4. Catches "exceptions" generated in "descendant" components.
+			//    Unhandled exceptions will cause the "entire component tree" to "unmount".
+
+			componentDidCatch?(error: Error, errorInfo: ErrorInfo): void;
+		} // ComponentLifecycle
+
+		--------------------------------------------------------
+		// This should be "infer SS" but can't use it yet.
+		interface NewLifecycle<P, S, SS> {
+			// 1. Runs before React applies the result of "render" to the document,
+			//    and returns an "object" to be given to "componentDidUpdate".
+			//    Useful for saving things such as scroll position before "render" causes changes to it.
+			//
+			//    Note: the presence of "getSnapshotBeforeUpdate" prevents any of the "deprecated" lifecycle events from running.
+
+			getSnapshotBeforeUpdate ? (prevProps: Readonly<P>, prevState: Readonly<S>): SS | null;
+
+			// 2. Called immediately after updating occurs. *Not* called for the "initial" render.
+			//    The snapshot is only represented if "getSnapshotBeforeUpdate" is represented and returns "non-null".
+
+			componentDidUpdate ? (prevProps: Readonly<P>, prevState: Readonly<S>, snapshot?: SS): void;
+		} // NewLifecycle
+
+		--------------------------------------------------------
+		interface DeprecatedLifecycle<P, S> {
+			// 1. Called immediately before mounting occurs, and before "Component#render".
+			//    Avoid introducing any side-effects or subscriptions in this method.
+			// 
+			//    Note: the presence of "getSnapshotBeforeUpdate" or "getDerivedStateFromProps" prevents this from being invoked.
+			// 
+			//    @deprecated 16.3, use "componentDidMount" or the "constructor" instead; will stop working in React 17.
+
+			componentWillMount ? (): void;
+
+			// 2. Called immediately before mounting occurs, and before "Component#render".
+			//    Avoid introducing any side-effects or subscriptions in this method.
+			//    This method will *NOT* stop working in React 17.
+			//
+			//    Note: the presence of "getSnapshotBeforeUpdate" or "getDerivedStateFromProps" prevents this from being invoked.
+			// 
+			//    @deprecated 16.3, use "componentDidMount" or the "constructor" instead
+
+			UNSAFE_componentWillMount ? (): void;
+
+			// 3. Called when the component may be receiving new props.
+			//    React may call this even if "props" have *NOT* changed, 
+			//    so be sure to compare new and existing "props" if you only want to handle changes.
+			//    Calling "Component#setState" generally does *NOT* trigger this method.
+			//
+			//    Note: the presence of "getSnapshotBeforeUpdate" or "getDerivedStateFromProps" prevents this from being invoked.
+			// 
+			//    @deprecated 16.3, use static "getDerivedStateFromProps" instead; will stop working in React 17
+
+			componentWillReceiveProps ? (nextProps: Readonly<P>, nextContext: any): void;
+
+			// 4. Called when the component may be receiving new props.
+			//    React may call this even if "props" have *NOT* changed, 
+			//    so be sure to compare new and existing "props" if you only want to handle changes.
+			//    Calling "Component#setState" generally does *NOT* trigger this method.
+			//    This method will *NOT* stop working in React 17.
+			// 
+			//    Note: the presence of "getSnapshotBeforeUpdate" or "getDerivedStateFromProps" prevents this from being invoked.
+			// 
+			//    @deprecated 16.3, use static "getDerivedStateFromProps" instead
+
+			UNSAFE_componentWillReceiveProps ? (nextProps: Readonly<P>, nextContext: any): void;
+
+			// 5. Called immediately before rendering when new "props" or "state" is received. 
+			//    Not called for the "initial" render.
+			// 
+			//    Note: You cannot call "Component#setState" here.
+			//    Note: the presence of "getSnapshotBeforeUpdate" or "getDerivedStateFromProps" prevents this from being invoked.
+			// 
+			//    @deprecated 16.3, use getSnapshotBeforeUpdate instead; will stop working in React 17
+
+			componentWillUpdate ? (nextProps: Readonly<P>, nextState: Readonly<S>, nextContext: any): void;
+
+			// 6. Called immediately before rendering when new "props" or "state" is received.
+			//    *Not* called for the "initial" render.
+			// 
+			//    Note: You cannot call "Component#setState" here.
+			//          This method will *NOT* stop working in React 17.
+			// 
+			//    Note: the presence of "getSnapshotBeforeUpdate" or "getDerivedStateFromProps" prevents this from being invoked.
+			// 
+			//    @deprecated 16.3, use getSnapshotBeforeUpdate instead
+
+			UNSAFE_componentWillUpdate ? (nextProps: Readonly<P>, nextState: Readonly<S>, nextContext: any): void;
+		} // DeprecatedLifecycle
+
+	- The future example is make a Clock with class component and look into React component lifecycle.
+
+
+04. Implementing "State" In The React "Class" Component.					<--- ***
+
+	- If the class component must have "state",
+	  The component shoud have "state" named field.	(***)
+
+	- Example: refer to the "src/pages/ClassLifecycle.tsx" source.
+
+
+05. The Contraint That The "state" Of a Class Component Has To Be Complemented.
+	as always "state" named field(property) in the class component.			<--- ***
+
+	- The following code is to declare the "state" field(property),
+	  It satisfies with the constraint by declaring a "today" field(property)
+	  in it and initialize the field(property).
+
+	- In "render()" method, The value of "today" field(property) could get  
+	  in the form of "this.state.today".										<--- ***
+	  and It makes clear the meaning by "de-structuring assignment".			<--- ***
+
+	- Example: The pattern to implement "state" in "class" component.
+
+		export default
+		class ClassLifecycle extends Component {
+
+			state = {
+				// List up all properties consisting "state" field.				(***)
+				today: new Date,
+				...
+
+			}
+
+			render(): JSX.Element {
+				// Using de-structuring assignment
+				// to get the "today" property of "state" in class component.	(***)
+				const {today} = this.state
+				...
+
+			}
+		}
+
+
+06. Component Mount.														<--- ***
+
+	- A React component is created as a virtual DOM object
+	  and become a member object of phyical DOM tree in some time.
+	  In this process, "rendering" triggered in first.
+	  At this time, It is said that "A component become mounted". (***)
+	
+	- The timing to convert a virtual DOM object into a phyical DOM object
+	  is represented as "Mounted". (***)
+
+	- React invokes it at the time of "mount"
+	  If a class component has a "componentDidMount" method. (***)
+
+	- The following code shows that at the time of "Component Mounted",
+	  The "setInterval()" method invoked to make a block in the "componentDidMount()" method:
+
+	  Example:
+
+	  	export default
+		class ClassLifecycle extens Component {
+
+			// automatically invoked at the time of "Component Mounted"
+			componentDidMount() {								// ①
+				const duration = 1000
+				const id = setInterval(callback, duration)		// ②
+			}
+			...
+
+		}
+
+	- Now have to implement "callback" used in "setInterval()" method.
+	  The "setState()" method to be provided in the "React.Component" class
+	  which is a "parent" class of all "class" componnent is necessary at this time.	(***)
+
+	- The "setState()" method.								<--- ***
+	  ○ The "Comonent" class provides the "setState" method as follows:
+
+	  	setState<K extends keyof S>(
+            state: ((prevState: Readonly<S>, props: Readonly<P>) => Pick<S, K> | S | null) | (Pick<S, K> | S | null),
+            callback?: () => void,
+        ): void;
+
+	  ○ The signature of this method is very complicated.
+	    but It's invoked "in most case" as follows:	(***)
+
+	  	Example: Invocation of "setState()" method.
+
+			const id = setInterval(callback, duration)
+			this.setState( { intervalId: id } )				<--- ***
+
+	  ○ Of course, If the "property" name == the name of a "variable" which has a property value,
+		Using the TypeScript feature which the "property name" could be "abbreviated",	
+		it invokes as follows:	(***)
+
+		Example: Invocation of "setState()" method to abbreviate the property name.
+
+			const id = setInterval(callback, duration)
+			this.setState( { intervalId } )					<--- ***
+
+	  ○ This method is designed on the assumption that
+	    a class component should have the "state" field. (***)
+
+	- The following code show that at the time of "component mounted",
+	  Changing the value of "this.state.today" into current time per second
+	  by invoking "setInterval" method:
+
+	  Example: Update current time per second
+
+		export defalt class ClassLifecycle extends Component {
+			state = {
+				today: new Date(),
+
+				// error ts(2708) - Cannot use namespace 'NodeJS' as a value.
+				// intervalId: NodeJS.Timer                 // XX
+
+				intervalId: null as unknown as NodeJS.Timer // OK, TypeScript requests like this
+			}
+
+			componentDidMount() {
+				const duration = 1000
+
+				const intervalId = setInterval(
+					() => this.setState( {today: new Date()} ),	<--- ***
+					duration
+				) // setInterval
+				this.setState( {intervalId} )					<--- ***
+			}
+		}
+
+
+07. Component Unmount.
+
+	- After a React Component created, mounted, rendered to web page,
+	  The component is destroyed at some point.									(***)
+
+	- React represents as "Become Un-mounted"
+	  when a component converted into a phyical DOM object and then destroyed.	(***)
+
+	- React invokes it just before the component will be "Un-mounted"
+	  If a class component implements "componentWillUnmount" method.			(***)
+
+	- In previous, It invoked "setInterval" function in the "componentDidMount" method.
+	  The "setInterval" function is designed under the assumption that 
+	  if the "setInterval" function is *NOT* used any more,
+	  The "clearInterval" function shoud be invoked definitely.
+
+	  If the "clearInterval" function *NOT* invoked, memory leark occurs.
+
+	- The following code show that just before "Un-mounted",
+	  invoke the "clearInterval" function to prevent memory leak:
+
+	  Example: release memory just before "Un-mounted".
+
+	  		componentWillUnmount() {
+				clearInterval(this.state?.intervalId)	// ".?": Optional chaining operator
+			}
+	  
+	- Example : refer to "src/pages/ClassLifecycle.tsx" source.
+
+
+08. Understanding "useEffect" and "useLayoutEffect" React Hooks.
+
+	- "react" package provides "useEffect" & "useLayoutEffect" Hooks as follows :
+
+		Example: import two hooks from "react" package.
+
+			import { useEffect, useLayoutEffect } from "react"						<--- ***
+
+	- The usage of two hooks are the same:
+	  ○ The "cb" is definitely invoked *once* first when executed the hook.			(***)
+
+	  ○ Because of this feature, 
+	  	The "cb" is invoked *once* even though the DL is empty([]).					(***)
+
+	  ○ This feature's effect is in deed the same as 
+	  	imlementing the "componentDidMount" method in the class component.			(***)
+
+	  ○ The difference between two hooks and "componentDidMount" method is that
+	  	Unlike the "componentDidMount" method invoked *ONCE* automatically,
+		Two hooks is invoked each time whenever DL is changed.						(***)
+
+	  	Example: The usage of "useEffect" and "useLayoutEffect".
+
+			useEffect(callback, DL)
+			useLayoutEffect(callback, DL)
+
+			Here, "callback" : () => {} 	// *NOT* () => void
+
+	  ○ Two hooks could return a function.	(***)	
+
+	    At this time, The "returned function" is invoked *ONCE*
+		when the component is "un-mounted".											<--- ***
+
+		Example: The returned function which is invoked *ONCE*
+
+			cb = () => {
+				// When a component un-mounted, Returned function invoked *ONCE*.	<--- ***
+				return "returned_function"	// (***)
+			}
+
+	- The difference between two hooks:
+	  ○ React framework executes these hooks as follows :
+	  	① useEffect			- executed Synchronously.					<--- ***
+			React framework do *NOT* wait until cb will be finished.	 <--- ***
+		② useLayoutEffect	- executed Asynchronously.					<--- ***
+			React framework waits until "cb" will be finished.			 <--- ***
+
+	  ○ React document recommends that 
+	  	use "useEffect" hook, *NOT* "useLayoutEffect" if possible.	(***)
+
+	    If implementing with "useEffect" hook is very difficult, 
+		Use "useLayoutEffect" hook instead of "useEffect" hook.		(***)
+	  	
+
+09. Considering "useInterval" Custom Hook.
+	- In previous 04-1, "useInterval" custom hook was made.
+
+															cleanup function
+												-----------------------------------------
+	- Here, The cb of "useEffect" hook returns "a function" which invokes "clearInterval" 
+	  with "id" taken from invoking "setInterval" function to prevent memory leak. 	(***)
+
+	- In functional language like TypeScript,
+	  It's said that "The closure for the 'id' is formed" like example.				(***)
+
+	- Example: "useInterval" custom hook.
+
+		import {useEffect} from "react"
+
+		export
+		const useInterval = (cb: () => void, duration: number = 1000) => {
+			useEffect(() => {
+				const id = setInterval(cb, duration)
+				return () => clearInterval(id)						// <--- ***
+			}, [cb, duration])
+		}	// useInterval
+
+	- In deed, because that the "useInterval" custom hook is used as follows.
+
+	  Event though the "DL" is *NOT* an empty array([]),
+	  The dependency of "cb", "duration" is in fact *NOT* changed.	(***)
+
+	  Because of this, "setInterval" function is executed *ONCE*.		(***)
+
+	  Example:
+
+		const [today, setToday] = useState<Date>(new Date())
+
+		// useInterval(() => setToday(new Date), []) 			// OK
+		useInterval(() => setToday(new Date))					// OK
+
+
+10. Making the "useEventListener" Custom Hook.
+	- By doing React development, once in a while, 
+	  There are times when attach event handlers to the "DOM" or "window" object, .
+
+	- In 02-5, The DOM types like "HTMLElement" extends the "EventTarget" type.			(***)
+
+	  ○ "EventTarget" provides "addEventListener" and "removeEventListener" methods.	(***)
+	  ○ If invoking "addEventListener" method, It should invoke "removeEventListener"
+	  	definitely to prevent memory leak like "setInterval".							(***)
+	  ○ Making a "useEventListener" custom hook with the content of the above:
+
+	  	Step1) Create a new "src/hooks/useEventListener.ts" source
+		Step2) Declare "useEventListener" custom hook.
+
+			import { useEffect } from "react";
+
+			export 
+			const useEventListener = (
+				target: EventTarget | null,
+				type: string,
+				cb: EventListenerOrEventListenerObject | null
+			) => {
+				useEffect(() => {
+					if(target && cb) {
+						target.addEventListener(type, cb)					// ①
+						return () => target.removeEventListener(type, cb)	// ②
+					}
+				}, [target, type, cb])										// ③
+			} // useEventListener
+
+		Here, Using the all paramrters of "addEventListener" defined in the "EventTarget" type.
+
+		Because that "target", "cb" could be "null", thus invoke "addEventListener"
+		only when the "target" and "cb" is *NOT* null.
+
+		Just, the initial value of "target" or "cb" is "null".	(***)
+		To prepare the case that "target" or "cb" value would be changed to some value,
+		Putting the "target", "cb" parameters into the "DL".	(***)
+
+
+11. Making the "useWindowResize" Custom Hook.
+	- The responsive web design is the design that according to the window size in real-time,
+	  To provide best UI experience, change the size and location of all HTML elements composing a web page.
+
+	- Unlike mobile or tablet, in desktop, user can change the size of web browser with mouse.
+
+	- Due to this, Whenever changing of the size of the web browser,
+	  It should detect it and change the size and position of all HTML elements accordingly
+	  for responsive web design.	(***)
+
+	- The type of "window" BOM object is a "Window" type.					(***)
+	  This "Window" type extends "EventTarget" super type.					(***)
+
+	  So, "window" BOM object could be assigned to 
+	  the "target" parameter of previous "useEventListener" custom hook.	(***)
+
+	- The size of a web page (*NOT* web browser) could be get
+	  with the "innerWidth" and "innerHeight" properties of the "window" BOM object.	<--- ***
+
+	- If set event type to the "resize",
+	  the changing the size of of a web page (*NOT* web browser) could be detected.		<--- ***
+
+	- Making "window" size to be "stateful data" with the "useState" React hook.		<--- ***
+
+	- When the component is mounted, persist "window" size into the "state".			<--- ***
+	
+	- Add a "resize" event handler to "window" object,
+	  Whenever the "window" size is changed, change "state" with the detected size. 	<--- ***
+
+	- Please make a custom hook doing like the above:
+
+	  ○ Step1) Create a "src/hooks/useWindowResize.ts" source.
+	  ○ Step2) Please refer to the "src/hooks/useWindowResize.ts" source.
+
+
+12. Example: Making a Functional Component.
+	- Using the "useWindowResize" custom hook.	(***)
+	- Whenever resizing the web browser,
+	  the value to be represented in the web browser will be changed in real-time.
+
+	- Please refer to the "src/pages/WindowResizeTest.tsx" source.
+
+
+13. Considering the "fetch()" function & "Promise" Class.
+	① "fetch" API
+	  ○ The "fetch" API and "Promise" class are provided by default in JavaScript.
+
+	  ○ The "fetch" API makes HTTP method like GET/POST/PUT/DELETE in HTTP protocol easy to use.	<--- ***
+
+	  ○ The "fetch" API can cause to get "Response" type object
+	    which provides "blob", "json", "text", ... methods.											<--- ***
+
+	  ○ The following is the definition of "fetch" function:
+
+		/** [MDN Reference](https://developer.mozilla.org/docs/Web/API/fetch) */
+
+		// 1. This Fetch API interface represents the response to a request.						<--- ***
+		interface Response extends Body {...}
+
+		// 2. This Fetch API interface represents a resource request.								<--- ***
+		interface Request extends Body {...}
+
+		// 3. RequestInfo AND RequestInit type definition
+		type RequestInfo = Request | string;														<--- ***
+		interface RequestInit {...}
+
+		// 4. "fetch" function prototype
+		declare function fetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response>;	<--- ***
+
+	  ○ In general, "fetch" API uses "HTTP GET" method as follows:									<--- ***
+
+		Example: fetch(URL)																				
+
+	  ○ The following example is to send a request by "fetch" API to the site (https://randomuser.me/api/)
+	  	which returns a random user in "JSON" format.												<--- ***
+
+		Example: fetch("https://randomuser.me/api")
+
+	  ○ The "fetch" API returns the "Promise<Response>" type object.								<--- ***
+
+	  ○ The following shows the response of "fetch" API invocation:
+
+		Example: fetch("https://randomuser.me/api/").then(console.log)
+
+	② "Promise" class
+	  ○ This class makes "asynchronous callback function" easy to implement.						<--- ***
+	  ○ This provides "then()", "catch()", "finally()" methods.										<--- ***
+
+	  ○ The following is a example to use thee methods of "Promise" class:
+
+		Example: To use three methods of "Promise" class
+
+			fetch("https://randomuser.me/api/")
+				.then(res => res.json())
+				.then((data: unknown) => console.log(data))
+				.catch(err: Error) => console.log(err.message))
+				.finally(() => console.log("Done."))
+    
+	  ○ The "then" method invokes the "cb" to be set when all is normal.
+
+	    If "cb" of "then" method returns value or other "Promise" object,
+		Re-invokes again "then" method to get the value which "cb" returns.							<--- ***
+		
+		/**
+		 * ------------------------------------------------
+		 * then<TResult1 = T, TResult2 = never>(
+		 * 		onfulfilled? : ( (value: T)    => TResult1 | PromiseLike<TResult1>) | undefined | null,
+		 * 		onrejected?  : ( (reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null
+		 * ): Promise<TResult1 | TResult2>;
+		 * ------------------------------------------------
+		 * Attaches callbacks for the "resolution" and/or "rejection" of the "Promise".
+		 * 
+		 * @param onfulfilled - The "cb" to execute when the "Promise" is "resolved".
+		 * @param onrejected  - The "cb" to execute when the "Promise" is "rejected".
+		 *
+		 * @returns A "Promise" for the completion of whichever "cb" is executed.
+		 */
+
+	  ○ The "catch" method does the following when an error raised:									<--- ***
+	  	① Transfers an "Error" type object which JavaScript engine provides by default
+		   to the input paramerer of "cb"
+		② and invokes the "cb" to be set
+
+		Transfering an "Error" object by "catch", it makes which error raised easy to know.
+
+		/**
+		 * ------------------------------------------------
+		 * catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): 
+		 *		Promise<T | TResult>;
+		 * ------------------------------------------------
+		 * Attaches a "cb" for *only* the "rejection" of the "Promise".
+		 *
+		 * @param onrejected - The "cb" to execute when the "Promise" is "rejected".
+		 * @returns A "Promise" for the "completion" of the "cb".
+		 */
+		
+	  ○ The "finally" method "definitely" invokes the "cb" to be set, regardless of raising an error.
+	    After the "cb" of "then" or "catch" is invoked.
+
+		/**
+		 * ------------------------------------------------
+		 * finally(onfinally?: (() => void) | undefined | null): Promise<T>;
+		 * ------------------------------------------------
+		 * Attaches a "cb" that is invoked when the "Promise" is "settled" ("fulfilled" or "rejected").
+		 * The "resolved" value cannot be modified from the "cb".
+		 *
+		 * @param onfinally - The "cb" to execute when the "Promise" is "settled" ("fulfilled" or "rejected").
+		 * @returns A "Promise" for the "completion" of the "cb".
+		 */
+
+	③ To get partial data from the response ( Random Users Information ),
+	   Declare the type of data to get as follows:
+
+	  ○ Example:
+
+			type IRandomUser = {
+				email	: string;
+				name	: {title: string; first: string; last: string};
+				picture	: {large: string;};
+			}
+
+	  ○ To extract only "results" from response data:
+
+	  	Example: const {results} = data as { results: IRandomUser[] }				<--- ***
+
+	  ○ Like the following, Extracts only email/name/picture from response Data
+	    using a "utility" function :
+
+		Exanple:
+
+			const convertRandomUser = (result: unknown) => {
+				const { email, name, picture } = result as IRandomUser
+
+				// return { email: email, name: name, picture: picture }			// 1st. method
+
+				// If property name == variable name which has property value,
+				// The property name could be abbreviated.	(***)
+				return { email, name, picture }										// 2nd. method
+			} // convertRandomUser
+
+	④ To get response data which received from API server finally,
+	   It could be get as follows:
+
+	   	Example: Extract information of random users from API server
+
+			fetch("https://randomuser.me/api/")
+				.then(res => res.json())
+				.then((data: unknown) => {
+					const {results} = data as {results: IRandomUser[]}
+					const user = convertRandomUser(results[0])
+				})
+
+	⑤ Example:
+
+		Please refer to "src/data/fetchRandomUser.ts"
+	    
+	⑥ Display random user information from API server to the screen
+	  ○ Using previus module, "src/data/fetchRandomUser.ts",
+	  	Implement a functional component, "src/pages/FetchTest.tsx".
+
+	  ○ It takes some time to get data from remote API server.
+	    And communication error would be raised.
+
+		Considering these two, To get data from the API server,
+		The thee states and each intial value are necessary as follows:
+
+		Example: The "state" & "initial value" when getting data from API server
+
+			import {useToggle} from "../hooks"
+			immport * as D from "../data"
+
+
+			const [loading, toggleLoading] = useToggle(false)
+			const [randomUser, setRandomUser] = useState<D.IRandomUser | null>(null)
+			const [error, setError] = useState<Error | null>(null)
+
+	  ○ The following is to get data from the API server
+	    by using "setter" functions of the previous three states:
+
+		Example: To get data from the API server
+
+			const getRandomUser = useCallback(() => {
+				toggleLoading()
+				D.fetchRandomUser().then(setRandomUser).catch(setError).finally(toggleLoading)
+			}, []) // getRandomUser
+
+		Here, 
+			- The initial value of "loading" is "false".
+
+			- Thus, Before connecting to the API server,
+			  The invocation of "toggleLoading" function notifies fetching state to the user.	<--- ***
+
+			- In "finally" function, the "loading" value makes "false" again,
+			  Regardless of an error occurrence.												<--- ***
+
+			  In 04-3, The "useToggle" custom hook could be used effectively 
+			  to implement logic like this.
+
+	  ○ The following is an example when an error occurred.
+	    The error could be "null", Thus the code must be written like this:						<--- ***
+
+			Example: JSX example when an error occurs
+
+				{ error && <p>{error.message}</p> }												<--- ***
+
+	  ○ Likewise, Considering "randomUser" data which could be "null",
+	    Implement JSX statements like the following code pattern:
+
+		(*Note*) For reference, When implementing JSX statement having a condition.				<--- ***
+		In first, implement the code of form "*** { condition && () } ***".
+		Next, It makes JSX statements easy without an error if composing screen UI in a round bracket, "()".
+
+			Example: The JSX code pattern considering "null" data								
+
+				{ randomUser && (																<--- ***
+					<div>
+						<Avatar src={randomUser.picture.large} />
+
+						<div>
+							<p>{randomUser.name.title}. {randomUser.name.first} {randomUser.name.last}</p>
+							<p>{randomUser?.email}</p>
+						</div>
+					</div>
+				)}
+
+
+

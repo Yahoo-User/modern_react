@@ -1,0 +1,31 @@
+import type * as T from "./1_types"
+
+
+/*
+	The user-defined "reducer" function returns "new" state
+	with "prev" state and the user-defined "action".			<--- ***
+	This "reducer" function should be a "pure" function.		(***)
+*/
+
+const initialState: T.State = {
+	email: '',
+	name: {title: '', first: '', last: ''},
+	picture: {large: ''}
+}
+
+// -------------------------------
+
+export
+const reducer = (state: T.State = initialState, action: T.Actions) => {
+	switch(action.type) {
+		case "@remoteUser/setUser":			return action.payload
+		case "@remoteUser/changeName":		return {...state, name: action.payload}
+		case "@remoteUser/changeEmail":		return {...state, email: action.payload}
+		case "@remoteUser/changePicture":	return {...state, picture: action.payload}
+	}
+
+	return state			// * Required *
+} // reducer
+
+
+

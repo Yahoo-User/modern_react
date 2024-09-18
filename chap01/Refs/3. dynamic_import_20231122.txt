@@ -1,0 +1,99 @@
+******************************************
+* Dynamic Import in REPL, node / ts-node *
+******************************************
+
+1. We cannot use "import ~ from ~ " statement in "Node.JS" shell:
+
+    - Example:
+
+        > node or ts-node
+
+        > import DateTime from 'luxon'
+        import DateTime from 'luxon'
+        ^^^^^^
+        Uncaught:
+        SyntaxError: Cannot use import statement inside the Node.js REPL, alternatively use dynamic import  <--- ***
+
+
+2. Dynamic Import
+
+    - import(<module-name>) function: returns a "Promise" object in <pending> state.
+    - Thus, Using "await" keyword, You can get a resolved value from "Promise<pending>" object.
+
+    - Example1: 
+
+        > node / ts-node
+
+        > import('luxon')                           <--- *** : ① returns pending state's Promise object.
+        Promise {
+            <pending>,
+            [Symbol(async_id_symbol)]: 7291,
+            [Symbol(trigger_async_id_symbol)]: 5
+        }
+
+        > import('luxon').constructor               <--- *** : ② check type. Promise.
+        [Function: Promise]
+        >
+
+    - Example2: How to use exported member from imported module by 'import(<module-name)>' function.
+
+        > node or ts-node
+
+        > const luxon = await import('luxon')       <--- *** : ① Resolve a pending state's Promise.
+
+        > luxon                                     <--- *** : ② an Object
+        [Module: null prototype] {
+            DateTime: [class DateTime],
+            Duration: [class Duration],
+            FixedOffsetZone: [class FixedOffsetZone extends Zone],
+            IANAZone: [class IANAZone extends Zone],
+            Info: [class Info],
+            Interval: [class Interval],
+            InvalidZone: [class InvalidZone extends Zone],
+            Settings: [class Settings],
+            SystemZone: [class SystemZone extends Zone],
+            VERSION: '3.4.4',
+            Zone: [class Zone]
+        }
+
+        > console.dir(luxon)                        <--- *** : ③ equals to ②
+        [Module: null prototype] {
+            DateTime: [class DateTime],
+            Duration: [class Duration],
+            FixedOffsetZone: [class FixedOffsetZone extends Zone],
+            IANAZone: [class IANAZone extends Zone],
+            Info: [class Info],
+            Interval: [class Interval],
+            InvalidZone: [class InvalidZone extends Zone],
+            Settings: [class Settings],
+            SystemZone: [class SystemZone extends Zone],
+            VERSION: '3.4.4',
+            Zone: [class Zone]
+        }
+
+        > console.table(luxon)                      <--- *** : ④ shows all indexes of luxon
+        ┌─────────────────┬─────────┐
+        │     (index)     │ Values  │
+        ├─────────────────┼─────────┤
+        │    DateTime     │         │
+        │    Duration     │         │
+        │ FixedOffsetZone │         │
+        │    IANAZone     │         │
+        │      Info       │         │
+        │    Interval     │         │
+        │   InvalidZone   │         │
+        │    Settings     │         │
+        │   SystemZone    │         │
+        │     VERSION     │ '3.4.4' │
+        │      Zone       │         │
+        └─────────────────┴─────────┘
+        undefined
+
+        > luxon.VERSION                             <--- *** : ⑤ refers to the member of luxon object.
+        '3.4.4'
+        
+        > luxon.DateTime.local()                    <--- *** : ⑥ use a member of luxon by '.' operator.
+        DateTime { ts: 2023-11-22T07:08:27.628+09:00, zone: Asia/Seoul, locale: ko-KR }
+        
+        >
+

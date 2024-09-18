@@ -1,0 +1,621 @@
+**********************************************************************
+* 04-5. Understanding "useRef" and "useImperativeHandle" React Hook  *
+**********************************************************************
+
+01. The "useRef" and "useImperativeHandle" React hooks makes the value
+	apply to the "ref" property in a React component.													<--- ***
+
+	- In deed, All the components which React and React Native provides have named, "ref" property.		<--- ***
+
+	- This clause introduces:
+		① the "useRef" React hook
+		② the "useImperativeHandle" React hook
+		③ the "forwardRef()" function
+
+	- All React components provides "ref" property.														<--- ***
+
+	- This "ref" propety is *NOT* set by user code, set by React framework internals at some point.		<--- ***
+
+	- The "ref" property is "null" at first.															<--- ***
+	  Then at some point that React component is mounted,
+	  the "ref" property value becomes the value of a physical DOM object. 								<--- ***
+
+	- That is, The "ref" is the reference to the physical DOM object.									<--- ***
+
+	- Each HTML element is the "DOM type" object in JavaScript.	(***)
+	  ○ For example, All HTML element like <div>, <button> extends the "HTMLElement" super type. (***)
+	  ○ The "<div>" element is the "HTMLDivElement" sub-type object of the super-type "HTMLElement".
+	  ○ The "<button>" element is the "HTMLButtonElement" type object of the super-type "HTMLElement.
+	  ○ The "HTMLElement" super-type provides the following methods:
+		① click()  ② blur()  ③ focus()
+
+		These methods only could be invokable when the HTML element is in the physical DOM state,
+		*NOT* be invokable when the HTML element is in the virtual DOM state.							<--- ***
+
+	- The value of "ref" property is the value at the point of physical DOM state.						<--- ***
+	  ○ Thus, All methods like "click" could be invokable With "ref" property value. (That is, the physical DOM object)
+
+	- The following is the definition of "ref" property.
+	  and this shows that the "ref" property is the "Ref<T>" generic type.
+
+	  ○ Here, Type variable(= parameter) "T" means the "DOM type" like "HTMLElement".	(***)
+
+	  	/**
+		 * @internal You shouldn't need to use this type since you never see these attributes
+		 * inside your component or have to validate them.												<--- ***
+		 */
+		interface RefAttributes<T> extends Attributes {
+			/**
+			 * Allows getting a ref to the component instance.
+			 * Once the component unmounts, React will set `ref.current` to `null` (or call the ref with `null` if you passed a callback ref).
+			 * @see https://react.dev/learn/referencing-values-with-refs#refs-and-the-dom
+			 */
+			ref?: Ref<T> | undefined;				// <--- ***
+		} // RefAttributes
+
+		type Ref<T> = RefCallback<T> | RefObject<T> | null;
+
+		// Bivariance hack for consistent unsoundness with RefObject
+		type RefCallback<T> = { bivarianceHack(instance: T | null): void }["bivarianceHack"];
+
+		interface RefObject<T> {
+			  ***
+			--------
+			readonly current: T | null;				// <--- ***
+		}
+
+	  ○ Here, also the "Ref<T>" is the "RefObject<T>" type which have read-only property, "current".	<--- ***
+	  ○ The read-only property, "current" could be "null".												<--- ***
+
+	    That is to say, "Before" a React element "mounted",
+		At the point of "Virtual DOM type", the "current" is "null".				(***)
+
+	  ○ Because that the "current" value also be set inside the React,
+	    The user code must *NOT* change the value which React sets to other value.	(***)
+
+		So, the "current" property is the read-only.
+
+
+02. Understanding the "useRef" React Hook.
+	- "react" package provides the "userRef" React hook as follows:
+
+		import { userRef } from "react"		(***)
+
+	- The following code shows that the value gotten with "useRef" hook would be set to the "ref" property.	<--- ***
+	  This is why this hook is called, "useRef".
+
+	  * Set the "ref" property value with the "useRef" React hook :
+
+    	const divRef: React.MutableRefObject<HTMLDivElement | null> = useRef<HTMLDivElement | null>(null)	<--- ***
+
+		return(
+			<div ref={divRef} />		<--- ***
+		)									
+
+	  ○ Then, Return type of the "useRef" React hook is "React.MutableRefObject<T>".	(***)
+
+	  	/**
+		 * "useRef" returns a "mutable" "ref" object whose ".current" property is initialized to the passed argument ("initialValue"). 
+		 * The returned object will persist for the full lifetime of the component.		(***)
+		 *
+		 * Note that `useRef()` is useful for more than the `ref` attribute. 
+		 * It’s handy for keeping "any mutable value" around similar to how you’d use instance fields in classes.	(***)
+		 *
+		 * @version 16.8.0
+		 * @see https://react.dev/reference/react/useRef
+		 */
+		function useRef<T>(initialValue: T): MutableRefObject<T>;
+
+	  ○ The "MutableRefObject<T>" type has the "current" property like "RefObject<T>" type 
+	    which is the type of "ref" property.											(***)
+
+		interface MutableRefObject<T> {
+			current: T;						<--- ***
+		}
+
+	- Invoking the "click" method of "<input>".
+
+	  ○ When <input type="file">, Mouse click causes to open dialog box named, "Open".
+
+	  	<input type="file" accept="image/*" />
+
+	  ○ If you want to display "Open" diaglog box with "programming",
+	  	You should get the "physical" DOM object of the "<input>" HTML element.			(***)
+		That is, the "ref" value.														(***)
+
+		* To display file open diaglog box with programming:
+
+			const inputRef = useRef<HTMLInputElement>(null)
+
+			return (       ***
+				       --------------
+				<input ref={inputRef} type="file" accept="image/*" />
+			)
+
+	  ○ If you want to provide "click" effect to the "<input>" element, when clicked other "button",
+	    Write the code as follows:
+
+			const inputRef = useRef<HTMLInputElement>(null)
+			
+			const onClick = useCallback(() => {
+					// Initial value is "null",
+					// But React changes null to valid value then. (***)
+					const input = inputRef.current
+
+					if(!input) return
+					input.click()
+				},
+				// DL : Dependency List
+				// [inputRef.current]		// 1st. case : Event included in DL, No re-render.	(***)
+				[]						// 2nd. case : No re-rendering requested.	(***)
+			)
+
+			// -----------------------
+
+			return(                         ***
+				<div>				   --------------
+					<input type="file" ref={inputRef} accept="image/*" className="btn btn-secondary" />
+					<p>&nbsp;</p>
+					<button onClick={onClick} className="btn btn-primary">Click Me</button>
+				</div>
+			)
+
+	  ○ As previously stated, the "inputRef.current" property has the "null" initial value.
+		and then React changes "null" initial value to the other valid value.	(***)
+
+	  ○ Thus, the "inputRef.current" property should be included into the "DL" of "useCallback" hook.	(***)
+		By this, The "cb" of the "useCallback" hook could get valid "inputRef.current" reference, *NOT* "null".
+
+		*NOTE: Event though the "inputRef.current" property value get by invoking "useRef" hook has changed,
+			   It's designed *NOT* to re-render the component.									<--- ***
+
+			   So, If *NO* "re-rendering" be necessary,
+			   The "inputRef.current" property would *NOT* be included in DL of "useCallback".	<--- ***
+
+	  ○ If using called, "null merging" or "Optional chaining" operator(?.)" in TypeScript,
+	    The above "onClick" event handler could be more simply implemented as follows:
+
+		* implementation with "?." operator
+
+			const onClick = useCallback(() => inputRef.current?.click(), [])
+
+	  ○ Then, If invoking the "click" method of "<input>" element by programming, 
+	    The "<input>" element could be *NOT* displayed as follows:
+
+		* Hiding "<input>" element
+
+			<input ref={inputRef} className="hidden" type="file" accept="image/*" />
+
+		  Here, For reference, the `className="hidden"` uses tailwindcss's class,
+		  In CSS, "hidden" corresponds to the "display: none".	(***)
+
+
+03. Example
+	- Putting together what I've done so far, Make an example.
+
+	  Please refer to the "src/pages/ClickTest.tsx" source.
+
+
+04. FileList Class and Array.from() Method
+
+	- In 02_5, The following code is the "FileInput.tsx" source:
+
+	  ○ In the "onChange" event handler, get "e.target.files" of "FileList" type.	(***)
+
+		Example: "FileInput.tsx" in 02_5
+
+			export default function FileInput() {
+				const onChange = (e: ChangeEvent<HTMLInputElement>) => {
+					const files: FileList | null = e.target.files					<--- ***
+				} // onChange
+
+				return <input type="file" onChange={onChange} multiple accept="image/*" />
+			}
+
+	  ○ "FileList" type is a list of "File" type.		(***)
+	    But "FileList" type is *NOT* JavaScript array.	(***)
+
+	  ○ In JavaScript, The classes like "FileList" are called, "array-like object".	<--- ***
+
+	  ○ In JavaScript, The "array-like object" could be converted into an "Array"
+	    with "Array.from" method as follows:										<--- ***  
+
+		Example: convesion array-like object into an Array.
+
+			const files: FileList | null = e.target.files
+			const fileArray: File[] = Array.from(files)
+
+
+05. Read a "File" Type Object With "FileReader" Class.
+
+	- JavaScript provides the "FileReader" class by default
+	  to read a "File" type object.													<--- *** 
+
+	  ○ The "FileReader" class provides the "readAsDataURL()" method as follows:	<--- ***
+
+	  	Example: "readAsDataURL()" method.
+
+			// const file: File = ...
+
+			const fileReader = new FileReader		// ***
+			fileReader.readAsDataURL(file)			// ***
+
+	  ○ The "readAsDataURL" method in the "FileReader" class reads a "File" type object
+	    and provides a image composed of string like the following:
+
+		This method is called, "Base64 Encoding".									<--- ***
+
+		Example: An image encoded in way of Base64 Encoding.
+
+			[ data:image/jpeg;base64,/9j/4AQSkZJRgABAQEASABIAA... ]					<--- ***
+
+	  ○ Data included in the "File" type object is *binary* data.
+	    Thus, When base64 encoding, It takes some time to encode.	(***)
+
+	  ○ So, "FileReader" class provides the "onload" event property
+	  	used like the following:													<--- ***
+
+		Example: "onload" event property
+
+			const fileReader = new FileReader()
+
+			fileReader.onload = (e: ProgressEvent<FileReader>) => {
+				if(e.target) {
+					const result = e.target.result	// Result with base64 encoding
+				}
+			}
+
+			fileReader.readAsDataURL(file)
+
+		For reference, Type "ProgressEvent" is provided by default in JavaScript. (***)
+
+	- Making a "imageFileReaderP" utility function
+	  ○ Then, The code pattern of "FileReader" class like the above becomes very diffcult
+	    when reading "multiple" files.														<--- ***
+
+	  ○ To use more simply "FileReader" class, do the following:
+
+	  	> mkdir src/utils
+		> touch src/utils/index.ts
+		> touch src/utils/imageFileReaderP.ts
+
+	  ○ The suffix, "P" of "imageFileReaderP" means a function returning a "Promise<T>" object.	(***)
+
+	  ○ The following code is to implement the usage of previous "FileReader" class
+	    in the "imageFileReaderP.ts" source:
+
+		Example: refer to the "src/utils/imageFileReaderP.ts" source
+
+	  ○ Apply "imageFileReaderP.ts" into the "src/utils/index.ts" source
+
+	  	Example:
+
+			export * from "./imageFileReaderP";
+
+
+06. Making a "FileDrop" Component.
+
+	- Make a "FileDrop" component with the previous "imageFileReaderP" utility function. (***)
+
+	- This component displays a image file to the web browser.
+	
+	- This component supports "Drag & Drop" of a image file into the web page or
+	  select a file with "Open" dialog box.
+
+	- The core of the component is to implement four "event handlers" used in JSX statements:
+
+	  Example : Event Handlers.
+
+	  	<div onClick={onDivClick} 
+			 className="w-full mt-4 bg-gray-200 border border-gray-500">
+
+			<div onDragOver={onDivDragOver} onDrop={onDivDrop}
+				 className="flex flex-col items-center justify-center h-40 cursor-pointer">
+
+				<Icon name="file_upload" className="text-xl text-blue-500" />
+				<p className="text-3xl font-bold">Drop Images or Click Me</p>
+
+			</div>
+
+			<input ref={inputRef} onChange={onInputChange} multiple className="hidden" type="file" accept="image/*" />
+		</div>
+
+	  ○ Here, The "onDivClick" event handler invokes "click" method of "<input type='file'/>" 
+	  	by programming with the previous method to implement when testing "click":				<--- ***
+
+		Example: "onDivClick" event handler.
+
+			const inputRef = useRef<HTMLInputElement>(null)		// (***)
+			const onDivClick = useCallback(() => inputRef.current?.click(), [inputRef.current])	<--- ***
+
+	  ○ If user select several image files in "Open" diaglog box, 
+	  	The "onInputChange" event handler invoked.												<--- ***
+
+		Then, implement "imagesUrls" & "makeImagesUrls" utility functions in first
+		to implement "onInputChange" event handler more simply as follows:
+
+		Example: Implementation of "imagesUrls" & "makeImagesUrls" utility functions.
+
+			const [imagesUrls, setImagesUrls] = useState<string[]>([])							<--- *** : ①
+
+			const makeImagesUrls = useCallback((files: File[]) => {
+				const promises = Array.from(files).map(imageFileReaderP)						<--- *** : ②
+
+				Promise
+					.all(promises)
+					.then(urls => setImagesUrls(imagesUrls => [...urls, ...imagesUrls]))		<--- *** : ③
+			}, [])
+	
+	  ○ In above, "Promise.all" method receives an Array composed of the "Promise" objects,
+	    and invokes all "then" method on each "Promise" object in the Array.					<--- ***
+
+		That is, "Promise.all" method plays a role in transfering an array of results
+		to the "then" callback.																	<--- ***
+
+	  ○ Now, The "onInputChange" event handler could be implemented simple like the following :
+
+	  	Example: "onInputChange" event handler.
+
+			const onInputChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+				const files = e.target.files					// (***)
+				files && makeImagesUrls(Array.from(files))		// (***)
+			}, [])
+
+	  ○ The "imageUrls" function which made like this uses the "<Div/>" component of chap03,
+	    and displays in the form of the background image of the "<div>" element:
+
+		Example: Display an image as the "<div>" elemtnets's background.
+
+			cosnt images = useMemo(() => 
+				imageUrls.map((url, index) => (
+					<Div 
+						key={index}
+						src={url}
+						className="m-2 bg-transparent bg-center bg-no-repeat bg-certain"
+						with="5rem" height="5rem" />
+				)), [imageUrls])
+
+			<div className="flex flex-wrap">{images}</div>
+
+	  ○ In 02-5, If dropping an image file into the area, the "onDivDrop" event handler invoked
+	  	and if getting the "files" object of the "FileList" type in the form of "e.dataTransfer?.files",
+		Files dropped to the "imageUrls" could be appended with "makeImagesUrls" utility function.			<--- ***
+
+		Example: "onDivDrop" event handler.
+
+			const onDivDrop = useCallback((e: DragEvent) => {
+				// ① To prevent a dropped image file to display new tab of web browser.
+				e.preventDefault()
+
+				// ② All dropped files could be taken through "e.dataTransfer?.files".
+				const files = e.dataTransfer?.files
+
+				// ③ files dropped to the "imageUrls" could be appended with "makeImagesUrls".
+				files && makeImagesUrls(Array.from(files))
+			}, [])
+
+	- Example: refer to "src/pages/FileDrop.tsx" source.
+
+
+07. Using the "ref" property of the "<input>" element.
+	- The "<input>" element is used  in general in JSX statements as follows:
+
+	  ○ Example: JSX code with "<input>" element
+
+	  		<input className="input input-primary" placeholder="enter some text" />
+
+	- If user click the "<input>" element to input value, the element is *focused*.
+
+	  ○ Then, Without user click about the "<input>" element,
+	  	It could make the element focused.	(***)
+
+	  ○ The value of the "inputRef.current" gotten by the "ref" property of "<input>"
+	  	becomes the physical DOM object.														<--- ***
+
+		Thus, With the method of invoking "click" method of the physical DOM object
+
+	- Example: please refer to the "src/pages/InputFocusTest.tsx" source
+
+	  ○ Executing code, Input box is "focused" immediately as soon as web page opens.
+
+
+08. Getting "value" Property's Value Of "<input>" Element Without invoking "useState" React Hook.
+
+	- React always requests thatwrite the code in relation to the "value" property of "<input">"
+	  by pattern as follows. But this code pattern is a little bit complicated.
+
+	  ○ Example: The code pattern of "value" property of "<input>".
+
+	  	const [value, setValue] = useState<string>('')
+		const onChangeValue = (e: ChangeEvent<HTMLInputElement>) => setValue(notUsed => e.target.value)
+		....
+
+		return <input value={value} onChange={onChangeValue} />
+
+	- The reasons that React requests code like this pattern is 
+	  to re-render "fastlier" in "virtual" DOM environment.							<--- ***
+
+	- If the "ref" property has a "valid" value, in other words, physical DOM object created,
+	  The value of "value" property of this object could be get "directly".			<--- ***
+
+	  ○ Here, Without the "useState" React hook, Getting the "value" property of "<input>":
+
+	  	Please refer to the "src/pages/InputValueTest.tsx" source.
+
+
+09. Understanding "forwardRef" function.
+
+	- As its name says, the "forwardRef" function plays a role in 
+	  transfering the "ref" created in the "parent" component to the "child" component.		<--- ***
+
+	- To use the "forwardRef" function, first import it like the following:
+
+	  ○ Example: Import "forwardRef"
+
+		import React, {forwardRef} from "react" 
+
+	- The principle of "forwardRef" function operation:
+
+			[ Parent Component ] -- Transfer "ref" prop (that is, "forwardRef") to --> [ Child Component ]
+
+			      ***																				***
+			  ------------																	   -------------		
+		const textInputRef = useRef()                               	const textInputView = ({textInputRef}) => {
+		<TextInputView 	ref={textInputRef} />								return <TextInput  	ref={textInputRef} />
+						------------------								}                     	------------------    
+						       ***																	  	***
+
+	- Understanding the Reason why "forwardRef" function required.
+
+	  ○ In 03-5, "src/theme/daisyui/Input.tsx" source created as follows:
+
+		import type {FC, DetailedHTMLProps, InputHTMLAttributes} from "react"
+
+		export
+		type ReactInputProps = DetailedHTMLProps<InputHTMLAttributes<HTMLInputElement>, HTMLInputElement>
+
+		export
+		type InputProps = ReactInputProps & {}
+
+		export
+		const Input: FC<InputProps> = ({className: _className, ...inputProps}) => {
+			const className = ["input", "_className"].join(' ')
+
+			return <input {...inputProps} className={className} />
+		} // Input
+
+	  ○ Then like the following, Could "inputRef" be set to the "ref" prop of "<Input />" component ?
+
+	  		import {Input} from "../theme/daisyui"
+
+			<Input ref={inputRef} className="input-primary" />
+
+	  ○ That is, the "base" component "<input>" which React provides can have the "ref" prop.	<--- ***
+		But "User-defined" component like "<Input />" also could be set value to the "ref" prop ?
+
+	  	The purpose of the "ref" prop is to get the correponding physical DOM object.			<--- ***
+
+		Because that "<Input />" which is a "User-defined" component,
+		It could *NOT* get the correspoding physical DOM object.								<--- ***
+
+	  ○ Example:  refer to the "src/pages/ForwardRefTest.tsx" source.
+
+		Note: Instead of "<input>" base component, use the user-defined, "<Input />" component.
+
+		- The result of execution displays as "undefined" as user input value in the display section. (***)
+		- The reason is that :
+
+		  ● "Input.tsx" source in the "src/theme/daisyui" directory is implemented as follows in previous:
+
+		  	<input {...inputProps} className={className} />
+
+		  ● The, the "ref" property of "<Input ref={...} .. />" must be transfered 
+		    with the "forwardRef" function, *NOT* "inputProps".									<--- ***
+
+	  ○ Type of "forwardRef" function
+	  	- The following is the type definition of "forwardRef" function:
+
+			function forwardRef<T, P = {}>(
+				render: ForwardRefRenderFunction<T, P>,
+			): ForwardRefExoticComponent<PropsWithoutRef<P> & RefAttributes<T>>;
+
+		- Then, in previous, Type of properties of the "<Input/>" is "InputProps".
+		  Thus, "P" type variable in "forwardRef" type is "InputProps" as follows :		(***)
+
+		  	export 
+			type ReactInputProps = DetailedHTMLProps<InputHTMLAttributes<HTMLInputElement>, HTMLInputElement>
+
+			export 
+			type InputProps = ReactInputProps & {}
+
+		- Example: The following source is transfer "ref" property with the "forwardRef" function.
+
+			Please refer to the "src/theme/daisyui/Input.tsx" source
+
+
+10. What is the "useImperativeHandle" React Hook ?
+	- The React hook that lets you customize the "handle" exposed as a "ref".		<--- ***
+
+	- This is used in TypeScript code, *NOT* JSX.									<--- ***
+
+	- To use "useImperativeHandle", import as the follows
+		import React, {useImperativeHandle} from "react"
+
+	- The principle of "useImperativeHandle" React hook
+
+	  ○ The reason to be validated is why the "TextInput" core component provides "focus" method:
+
+	  	const textInputRef = useRef<TextInput | null>(null)
+		const setFocus = () => textInputRef.current?.focus()
+
+	  ○ The birth background of this React hook :
+
+	  	● Assumes there is the following type:
+
+			export
+			type TextInputMethods = {
+				focus	: () => void;
+				dismiss	: () => void;
+			}
+
+		● The core background is What if "TextInput" is replaced with "TextInputMethods"
+		  as follows, instead of "TextInput" ?
+
+		  const methodsRef = useRef<TextInputMethods | null>(null)					<--- ***
+
+		  const setFocus = () => methodsRef.current?.focus()						<--- ***
+		  const dismissKeyboard = () => methodsRef.current?.dismiss()				<--- ***
+
+	- Type of "useImperativeHandle" React Hook :
+
+	  ○ The definition is as follows:
+
+	  	function useImperativeHandle<T, R extends T>(
+			① ref: Ref<T> | undefined,
+			② init: () => R,
+			③ deps?: DependencyList
+		): void;
+
+		Here,
+			① ref : To pass return value of invoking "forwardRef" function.					(***)
+			② init: To pass "() => method_object" form function like "useMemo" React Hook.	(***)
+
+	  ○ The following code shows that the usage of "useMemo" hook & "useImperativeHandle" hook are similar:
+
+	  		const object = useMemo(() => ({}), [])
+			const handle = useImperativeHandle(ref, () => ({}), [])
+	
+		● The first parameter, "ref" of "useImperativeHandle" hook have to use 
+		  the return value of "forwardRef" function.										(***)
+
+		  This means that the "useImperativeHandle" hook unlike other hooks must be *ONLY* used
+		  in the component like the previous "<Input />" component.							(***)
+
+	- Making the "ValidateableInput" Component.
+
+	  ○ Let "ValidateableInput" component with "useImperativeHandle" hook
+	    validate whether the email adddress is writtern correctly.							(***)
+
+	  ○ touch src/theme/daisyui/ValidateableInput.tsx
+
+	  ○ The component assumes that it imports the following type:
+
+		import type {ValidateableInputMethods} from "../theme"
+
+	  ○ Next, Use "useRef" hook with "ValidateableInputMethods" type variable, *NOT* "HTMLInputElement":
+
+	  	const methodsRef = useRef<ValidateableInputMethods>(null)
+
+	  ○ Then, Set "methodsRef to the "ref" of the "ValidateableInput" component:
+
+	  	<ValidateableInput type="email" ref={methodsRef} className="input input-primary" />
+
+	  ○ This component validate email address *ONLY*
+	    if "type" property of "<ValidateInput type='email'>" is "email".
+
+	  ○ Example: refer to "src/theme/daisyui/ValidateableInput.tsx"
+
+	- Example:
+
+		refer to "src/pages/ValidateableInputTest.tsx"
+

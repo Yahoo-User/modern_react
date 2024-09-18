@@ -1,0 +1,656 @@
+***************************************
+* 04-3. Understanding "useState" Hook *
+***************************************
+
+01. "useMemo" Hook caches "immutable" state(= data).                    <--- ***
+
+
+02. "useState" Hook caches "mutable" state(= data).                     <--- ***
+
+    - Import :
+
+        import { useState } from "react"
+
+    - The usage :
+
+      ○ The "setter" function which "useState" hook returns
+        causes React framework to easily detect the changes of internal state
+        inside a React component.                                                   <--- ***
+
+      ○ When the "setter" function invoked,
+        React framework determines the state changes of a React component
+        and immediately re-render the React component.                              <--- ***
+
+      ○ Usage:
+
+        const [statefulValue, setterToUpdateStatefulValue] = useState(initialValue)                 <--- ***
+
+    - The "state" have a "type".
+
+      ○ This type could be a Primitive type like number, boolean, string, ...
+        OR be a Reference(= Object) type like object, array, tuples, ...
+      
+      ○ When the type of state might be "S", "useState" hook is a generic function
+        to receive a initial value by a parameter, and to return a stateful value of "S" type & 
+        a function of "Dispatch<SetStateAction<S>>" type in a "tuple" to update it:
+
+        /**
+         * Returns a stateful value, and a function to update it.
+         * @version 16.8.0
+         * @see https://react.dev/reference/react/useState
+         */
+        function useState<S>(initialState: S | (() => S)): [ S, Dispatch<SetStateAction<S>> ];      <--- ***
+
+        Here, "Dispatch" and "SetStateAction" Type is the follow:
+
+            type Dispatch<A>        = ( value: A ) => void;                                         <--- ***
+            type SetStateAction<S>  = S | ( (prevState: S) => S );                                  <--- ***
+
+        Thus, These two types, "Dispatch<SetStateAction<S>>" means that one of the following:       <--- ***
+            ① setter(newValue)
+            ② setter(prevValue => newValue)
+
+
+03. When the type of stateful value is "number" type, Using "useState" Hook.
+
+    - The following code is to set initial value of 0, at this time count is 0 :
+
+        let initialValue: number = 0
+        const [ count, setCount ] = useState<number>(initialValue)
+
+    - If you want to increase the count by +1,
+      It follows 1st. method: ① setter(newValue)                            <--- ***
+
+        const increment = () => setCount(count + 1)
+        <button onClick={ increment }> + </button>
+
+      It follows 2nd. method: ② setter(prevValue => newValue)               <--- ***
+
+        const increment = () => setCount(count => count + 1)
+
+    - If the "useCallback" hook caches the above "increment" callback,
+      The "count" dependency is in trouble :                                <--- ***
+
+      ○ When the "count" initial value -> 0,            (count == 0)
+        If invoking "increment" callback, count -> 1.   (count == 1)
+
+        But the "count" inside the "useCallback" Hook -> 0 until now.       <--- ***
+
+      ○ That is, If not registering "count" into the dependency list (DL),
+        React do *NOT* update the "count" in the callback function of "useCallback" hook,
+        Then the "count" is always "0".
+
+      ○ But if putting the "count" into "DL" (Dependency List), 
+        The "useCallback" hook caches the "callback"
+        to which the updated "count" value applied like the follow :
+
+        Example1: When the "count" is in dependency trouble.    (* NOT recommended *)
+
+            const increment = useCallback(() => {
+                setCount(count + 1)     // If *NOT* putting "count" into DL, "count" always 0.
+            }, [ count ])               // Thus, The "count" must be putted into DL. (***)
+
+      ○ Interestingly, If the "increment" implemented as follows, 
+        The "count" dependency problem will *NOT* occur.
+
+        The input argument of the "setCount" function, "count => count+1" is a function.
+        React invokes "setCount" function with the current reserved value as an argument.
+        and the value which "setCount" function returns sets new value of the "count".
+        As a result, the "count" dependency problem will *NOT* occur.
+
+        Example2: When the "count" dependency problem is resolved.  (* Recommended *)
+
+            const increment = useCallback(() => {
+                setCount(count => count + 1)    // invoked setter with callback argument.
+            }, [])                              // It's good NOT to put the count into DL.  (***)
+
+    
+    - Example: please refer to the "src/pages/NumberState.tsx" source.
+
+
+04. Use aHook to React "<input>" Component
+
+    - In 02-5, <input> provides two properties: 
+      ○ "checked" property  : boolean type
+      ○ "value" property    : string or number type
+
+    - If one of the above two properties is changed,
+      Invoke "callback" registered into "onChange" event property.    <--- ***
+
+    - The definition of "<input"> component:
+
+      ○ input: DetailedHTMLProps<InputHTMLAttributes<HTMLInputElement>, HTMLInputElement>;
+
+      ○ interface InputHTMLAttributes<T> extends HTMLAttributes<T> {
+          ...
+          checked?: boolean | undefined;
+          value?: string | readonly string[] | number | undefined;
+          onChange?: ChangeEventHandler<T> | undefined;
+          ...
+      } // InputHTMLAttributes
+
+    - Then, There are differences in usage
+      between "React" <input> component and "HTML" <input> element:
+
+      ○ Set a default value in HTML <input> element:
+
+        <input type="text" value="default value" />       // If type="text",
+        <input type="checkbox" checked="checked" />       // If type="checkbox,
+
+      ○ Set a default value in React <input> component:
+
+        <input type="text"     value="Yoseph" />          // If type="text",
+        <input type="checkbox" checked={ true } />        // If type="checkbox",          <--- ***
+
+      ○ But If setting a "default value" into "value" or "checked" propery,
+        The warning displayed in web brower's console:                                    <--- ***
+
+        Warning: You provided a `value` prop to a form field without an `onChange` handler.
+                 This will render a read-only field.
+                 If the field should be mutable use `defaultValue`.
+                 Otherwise, set either `onChange` or `readOnly`.
+      
+        Warning: You provided a `checked` prop to a form field without an `onChange` handler.
+                This will render a read-only field.
+                If the field should be mutable use `defaultChecked`.
+                Otherwise, set either `onChange` or `readOnly`.
+
+      ○ To resolve the above warnins, When setting default value, 
+        You should use "defaultValue" and "defaultChecked" properties like the following: <--- ***
+
+        <input type="text" defaultValue="Yoseph" />               <--- ***
+        <input type="checkbox" defaultChecked = { true } />       <--- ***
+
+      ○ When setting an `onChange` event callback into <input type="text">, use `e.target.value`.                   <--- ***
+        When setting an `onChange` event callback into <input type="checkbox" or "radio">, use `e.target.checked`   <--- ***
+
+        Example: When <input type="text"/>, set `onChange` callback:
+
+          import type { ChangeEvent } from "react"
+
+          export default
+          function onChange() {
+              const onChange = (e: ChangeEvent<HTMLInputElement>) => {
+                  // console.log(e.target.value)
+              } // onChange
+
+              return <input type="text" onChange = { onChange } />
+          } // onChange
+
+    - In summary, Getting `setter` by "useState" hook about <input type="text/checkbox/radio/..." /> component in first,
+      Then, The `setter` function might be used on each `<input type=... />` in "onChange" event handler.
+
+      Like this, "useState" hook is the important for a React component to preserve the state of itself.      <--- ***
+
+    - Example: refer to "src/pages/InputTest.tsx" source.
+
+
+05. Making "useToggle" Custom Hook
+
+    - The following code which used in previous is related with "checked" property.
+      Coding like this pattern is a little bit complicated:
+
+      Example:
+
+          // Code pattern related with "checked" property.
+
+          const [checked, setChecked] = useState<boolean>(false)    // ***
+
+          const onChangeChecked = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+              // No use "checked" const variable  -> No dependency: DL === []
+              setChecked(notUsed => e.target.checked)              // ***
+          }, []) // "onChange" event handler
+
+    - To reduce the complication from the above code pattern,
+      Implementing named, "useToggle" custom hook in the "src/hooks/useToggle.ts" source.
+
+          > touch src/hooks/useToggle.ts
+
+
+    - The following code is to implement a "useToggle" custom hook:             <--- ***
+
+      ○ In this code, boolean value is always true or false
+      ○ Thus obstinately, *Not* use "e.target.checked" property of a "ChangeEVent"
+      ○ Using NOT operator(!), use code pattern like that
+        When "value" is "false", change "false" to "true    => value != value
+        When "value" is "true",  change "true"  to "false"  => also, value != value
+
+      ○ Example: "useToggle" custom hook implementation
+
+          Please refer to "src/hooks/useToggle.ts" source
+
+    - Applying "useToggle" custom hook to the "daisyui" `Modal` component:
+
+      Please refer to "src/pages/ShowHideModal.tsx" source
+
+
+06. Implementing Radio Button #1 - With Default Method.
+    - The radio button is used to chose one of values.  (***)
+    - Implementing radio button is a little bit complicated.
+    - First, To use several radio buttons,
+      Like next, You should set the "same" name to the "name" property of all radio buttons:
+
+      Example:
+
+          <input type="radio" name="same name" />
+          <input type="radio" name="same name" />
+          <input type="radio" name="same name" />
+
+    - Then, The "value (or defaultValue)" property's value of "radio" or "checkbox" is *NOT* displayed.
+      Therefore, Append "<label>" element to display a label next to the "radio" button:
+
+      Example:
+
+          <label>
+              <input type="radio" />
+              <span>Label</span>
+          </label>
+
+    - Implement radio button:
+
+      Example: refer to "src/pages/RadioInputTest.tsx" source.
+
+
+07. Implementing Radio Button #2 - With "value" Property.
+    - To known the selected button in "radio" buttons,
+      Apply the following code pattern to the "checked" property on each "radio" button:
+
+      ○ Example: How to get the "selected" radio button ???
+
+          const [ selectedValue, setSelectedValue ] = useState<string>(initialValue)
+
+                                                    How to get "value" ???
+                                                  ---------------------------
+          <input type="radio" name="same" checked={ value === selectedValue } />
+          <input type="radio" name="same" checked={ value === selectedValue } />
+          <input type="radio" name="same" checked={ value === selectedValue } />
+
+      ○ Here, The "value" is a problem how to get.                   (***)
+
+      ○ In 04-2, Applied "High-order" function to the "useCallback" Hook.
+
+      ○ If *NOT* using "High-order" function,
+        Set values to the "defaultValue" property on each radio element: (***)
+
+        Example: Using with "defaultValue" property         <--- ***
+
+          const [ selectedValue, setSelectedValue ] = useState<string>(initialValue)
+
+                                                                How ???                with "defaultValue" property
+                                                   ---------------------------------  ------------------------------
+          <input type="radio" name="same" checked={ defaultValue1 === selectedValue }  defaultValue="defaultValue1" />
+          <input type="radio" name="same" checked={ defaultValue2 === selectedValue }  defaultValue="defaultValue2" />
+          <input type="radio" name="same" checked={ defaultValue3 === selectedValue }  defaultValue="defaultValue3" />
+
+      ○ Then, The "onChange" event handler should be implemented on the following :
+
+        Example: Using "onChange" event callback,
+
+          const onChange = (e: ChangeEvent<HTMLInputElement>) => {
+              setSelectedValue(notUsed => e.target.value)
+          } // onChange event handler
+
+    - Implementing selection login of the radio buttons with "value" property.  <--- ***
+
+        Example: refer to the "src/pages/RadioInputTest2.tsx" source.
+
+
+08. Implementing Radio Button #3 - With "High-Order" Function.
+
+    - Implement radio button with high-order function.
+
+      ① When using "Hight-Order function", Like the following,
+         Which radio button checked could be known with the "index" of each radio button.   <--- ***
+
+          Example: To get selected value with "index".
+
+            const [selectedIndex, setSelectedIndex] = useState<number>(0)                   <--- ***
+
+      ② When implementing like this,
+         The "onChange" event handler would be implemented as a "High-Order Function".      <--- ***
+
+          Example: "onChange" callback implementation as a "High-order" function.
+
+            const onChange = useCallback(
+                // High-order(2-order) function which returns a function
+                // index is "Closure".
+                (index: number) => () => setSelectedIndex(notUsed => index), []             <--- ***
+            ) // onChange
+
+      ③ Set a event callback which resolves only "index" (partial function) 
+         to "onChange" property of "<input>".                                               <--- ***
+
+          Example:    <input onChange={ onChange(index) } />                                <--- ***
+
+    - Example: 
+    
+          refer to the "src/pages/HigherOrderRadioInputTest.tsx
+
+
+09. HTML <form> Element.
+
+    - When getting input from user in traditional web development,
+      The <form> element should be used.
+
+    - The <form> element:
+      ○ "method"  property - Set HTTP method like "GET" to transfer data
+      ○ "action"  property - After transfering form data, Set the URL of screen to be switched.
+      ○ "encType" property - If "method" property is "POST", Set one of the followings to encrypt form data:
+        (1) application/x-www-form-urlencoded (default)
+        (2) multipart/form-data
+        (3) text/plain
+
+    - When using SPA front-end framework like React, Back-end web server acts as APIs.
+      Thus, The "<form>" element and the properties of "action", "method", "encType", ... are
+      obstinately *NOT* necessary to be set.                                                          <--- ***
+
+      Just, The section of User input would be tranditionally implemented by the "<form>" element.    <--- ***
+
+    - The following is code pattern to implement "<form>" with React:
+
+        <form>
+            <input type="submit" value="button_text" />
+        </form>
+
+      ○ When submit form data by press "<input type='submit'/>",
+        The event handler is to use "onSubmit" event property like the follow:                      <--- ***
+
+        Example: Button event handling.
+
+          import type { FormEvent } from "react"
+          ...
+
+          const onSubmit = (e: FormEvent<HTMLFormElement>) => {}
+          
+          <form onSubmit={ onSubmit }>
+              <input type="submit" value="button_text" />
+          </form>
+
+      ○ For reference, Instead of the "FormEvent" type,
+        You could use the "ChangeEvent" or the "SyntacticEvent" types.                              <--- ***
+
+      ○ A caution when implementing "onSubmit" is that 
+        web browser re-render when "onSubmit" event occurs.                                         <--- ***
+
+      ○ Because of this, When implementing "onSubmit",
+        It must definitely invoke "e.preventDefault()" to prevent re-rendering.                     <--- ***
+
+        Example: To prevent re-rendering when form submitted
+
+          const onSubmit = (e: FormEvent<HTMLFormElement>) => {
+              e.preventDefault()    // * Very Important *
+              ...
+          } // onSubmit
+
+
+10. "FormData" Class
+    - "FormData" is a class that JavaScript provides by default.
+
+    - This class is used to submit user input data.                                           <--- ***
+    
+    - This class has several methods, but "FormData.append()" method is enough in general.    <--- ***
+
+    - The following is to append "(key, value)" form data with "FormData.append()" method:    <--- ***
+
+        Example: Appending Data
+
+          const formData = new FormData()                 <--- ***
+          formData.append("name", "Jack")                 <--- ***
+          formData.append("email", "jack@email.com")
+
+    - The "FormData" content could be converted into JSON format
+      with "Object.fromEntries()" class(static) method which JavaScript provides by default.  <--- ***
+
+        Example: Conversion into JSON format
+
+          const json = Object.fromEntries(formData)       <--- ***
+
+    - Example: 
+
+        Please refer to the "src/pages/BasicForm.tsx" source.
+
+
+11. Use "useState" Hook About An Object Type.
+
+    - In previous, "BasicForm" component makes "name" and "email" as stateful values.
+
+    - Also, An object type values could be used as an property values of a form data:
+
+      ○ Example: Implementation input elements as properties of an object.
+
+        type FormType = {
+            name : string;
+            email: string;
+        }
+
+      ○ As follows, "FormType" object could be made as a stateful value in React component.   <--- ***
+
+        Example: It makes an object as stateful data.
+
+          const [ form, setForm ] = useState<FormType>({ name: '', email: '' })               <--- ***
+
+    - If an object makes as an stateful,
+      The callback functions like "onChangeName", "onChangeEmail" should be implemented.      <--- ***
+      To do these, Deep/Shallow copy and TypeScript spread operator must be known.
+
+    - Deep & Shallow Copy, and Dependency List (DL)
+
+      ○ Almost programming languages supports 2 methods
+        when copying the value of an variable to the other variable:
+        (1) Deep    Copy
+        (2) Shallow Copy
+
+      ○ The copy method would be differently applied, according to the type of value:         <--- ***
+
+        (1) The type which the memory size of a value like "number", "boolean" could be known 
+            at compile time is always copied with "Deep Copy".      (***)
+
+        (2) The type which the memory size of a value like "object", "array" could *NOT* be known
+            at compile time is always copided with "Shallow Copy".  (***)
+
+        (3) But, One exceptional situation is "string". In TypeScript, A string is always "read-only".
+            And the memory size of a string could be known at compile time.
+            Thus, A string copy is always done with "Deep Copy".    (***)
+
+    - The reason that "deep copy" is important in React "hook" programming is 
+      due to the "dependency list" required to almost React "hook" functions.                 <--- ***
+
+      ○ In the following code,
+        It's considering that how to use "name" value taken with "e.target.value":
+
+        Example: How to use "name" value ?
+
+            const onChangeName = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+                const name = e.target.value                 // <--- ***
+
+                setForm(/* Implementation required */)      // Invoke "setter" of "useState" hook.
+            }, [form])  // onChangeName
+
+      ○ In the following code, It assumes that "setForm()" would be implemented by the follow.
+        The following code applies "Shallow Copy" due to the copy of an "Object":
+
+        Example: Comparation between copy methods.
+
+            const onChangeName = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+                const newForm = form                          // Shallow Copy (***)
+                // const newForm = Object.assign({}, form)    // Deep Copy    (***)
+
+                // newForm.name === form.name, due to shallow copy. (***)
+                newForm.name = e.target.value
+
+                setForm(newForm)    // Invoke "setter" of "useState" hook.
+            }, [form])  // onChangeName
+
+      ○ React framework compares in the form of "(form === newForm)"
+        to inspect whether the state of the form was changed.             <--- ***
+
+        But the copy of an object type is always "Shallow Copy".          <--- ***
+        So The result of the comparison is always "true".                 <--- ***
+
+        As a result, React regards that *NO* changes in the "form".
+        So React doesn't re-render it.                                    <--- ***
+
+        Thus, If you input value into "<input>", No apply to the "form".  <--- ***  
+        
+      ○ If using "Object.assign()" class(=static) method,
+        Do "Deep Copy" about an object type's copy.                       <--- ***
+
+        So (form === newForm) is always true,
+        and the web page will be re-rendered.
+        Thus the web page works fine.
+
+        But, the one problem is that this code pattern is a litte complexed.
+        TypeScript provides "spread operator" to implement the above code more simpler.   <--- ***
+
+    - TypeScript Spread Operator Sentence Applied To An Object.
+
+      ○ The following code have symbol, '...' to the front of 2 objects.
+
+        Here, According to the location of symbol '...', 
+        This '...' is called "Rest" or "Spread" operator.                                 <--- ***
+
+      ○ The following code shows a "Spread" operator:
+
+        Example: Merge two objects using "Spread" operator
+
+            let coord = { ...{x: 0}, ...{y: 0} }
+            console.log(coord)                    // { x: 0, y: 0}
+
+      ○ The following code is to implement more simply
+        with "Spread" operator to do "Deep Copy" than before "Object.assign" invocation.  <--- ***
+
+        Example: Implementation simply using "Spread" operator
+
+            const onChangeName = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+                const newForm = { ...form }     // "Deep Copy" with Spread Operator.
+                newForm.name = e.target.value
+                
+                setForm(newForm)    // invoke "setter" of the "useState" hook.  (***)
+            }, [form])  // onChangeName
+
+        And TypeScript Spread operator could change partial of properies of an object:
+
+        Example:  Change property value using Spread operator
+
+            const onChangeName = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+                // Deep copy and the specified property value change occured simultaneously.  (***)
+                const newForm = {...form, name: e.target.value}   // ***
+
+                setForm(newForm)    // invoke "setter" of the "useState" hook.                (***)
+            }, [form])
+
+    - TypeScript Object Return Statement
+
+      ○ In previous code, 
+        "setForm()" invocation could be also implemented with "callback" as the follows:
+
+        Example: Implementing "setForm()" in the form of "callback"
+
+            const onChangeName = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+                // Invoke "setter" of the "useState" hook.                                    (***)
+                // Deep copy and the specified property value change occured simultaneously.  (***)
+                setForm(form => { return {...form, name: e.target.value } })
+            }, [])  // The "form" would *NOT* be inserted into "DL".                          (***)
+
+        Like this, It's possible for "form" *NOT* to be inserted into "DL".
+        This code pattern is prefered way when invoking the "useCallback" hook.   <--- ***
+        Then, *No* "return" keyword required in this code.
+
+      ○ The following code is an example that abbreviate un-necessary "return" keyword
+        and returns new "form" object:
+
+        Example: implement "setForm()" as an "callback".
+
+            const onChangeName = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+                // Invocation of "setter" of the "useState" hook.                               (***)
+                // Deep copy and the specified property value change occured simultaneously.    (***)
+                setForm(form => { ...form, name: e.target.value })
+            }, [])  // The "form" would *NOT* be inserted into "DL".                            (***)
+
+      ○ But the only one problem is that TypeScript compiler regards
+        an "{...form, name: e.target.value}" object literal as "compound statement", 
+        *NOT* as object literal statement.    <--- ***
+
+        Example: Regaring as a "Compound Statement".
+
+            const onChangeName = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+                // Regaring "{ ...form, name: e.target.value }" as a "Compound Statement".
+                setform(form => { ...form, name: e.target.value })
+            }, [])  // The "form" would *NOT* be inserted into "DL".                            (***)
+
+      ○ In TypeScript, The "return" statement to return an "object" must use "round bracket, ()"
+        to enclose a "brace({})" which means an object.                                       <--- ***
+
+        This uses the feature that 
+        an "compound statement, {....}" could *NOT* be enclosed with a "round bracket, ()".   <--- ***
+
+        Example: The return statement to return an object.
+
+            const onChangeName = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+                // 1. Invocation of "setter" of the "useState" hook.                              (***)
+                // 2. Deep copy and the specified property value change occured simultaneously.   (***)
+                // 3. The "return" statement to return an "object" must use "round bracket, ()"
+                //    to enclose a "brace({})" which means an object.                             (***)
+                setForm( form => ({...form, name: e.target.value}) )
+            }, [])  // 4. The "form" would *NOT* be inserted into "DL".                           (***)
+
+    - Example:
+
+          Please refer to "src/pages/ObjectState.tsx" source.
+    
+
+12. Use "useState" Hook About An Array Type.
+
+    - An "Array" could be also used as the "stateful" value in a React component.               <--- ***
+      Thus, the Array is also a type.
+      So, The "useState" hook could be used on an Array as the follows:
+
+      Example: Making an Array as stateful value in React component.
+
+          // initialValue: an empty array, []
+          const [images, setImages] = useState<string[]>([])
+
+    - Example: Set callback into "onClick" event property.
+
+        <Icon name="add" onClick={ addImage } />
+        <Icon name="clearAll" onClick={ clearImages } />
+
+      ○ These "addImage", "clearImages" callbacks would be implemented more simply
+        If You know about TypeScript "Spread Operator".                                       <--- ***
+        
+    - TypeScript Spread Operator Statement Applied On An Array:
+
+      ○ Like applying "spread operator" to an "object",
+        The "spread operator" could be also applied to an "Array" as follows:  (***)
+
+        Example: Use "spread operator" to an "Array".
+
+            const numbers: number[] = [1, 2, 3]
+            const newNumbers: number[] = [...numbers, 4]      // [ 1, 2, 3, 4 ]
+
+      ○ The "spread operator" causes "Deep Copy",
+        then "numbers === newNumbers" is always "false" in the above.           <--- ***
+
+        That is, "numbers === newNumbers" could be used as the item of DL(= Dependency List).
+
+      ○ The "spread operator" which applies to an Array
+        could append a "new" item into the "start" of an "Array" as follows:    <--- ***
+
+        Example: Append new item into the start of an Array.
+            const numbers: number[] = [ 1, 2, 3 ]
+            const newNumbers: number[] = [4, ...numbers]    // [ 4, 1, 2, 3 ]
+
+      ○ New appended image is located in the start of an Array.
+      
+        Example: The "addImage" callback implementation with "spread operator".
+            const addImage = useCallback(() => setImages(images => [ D.randomImage(), ...images ]), [])
+
+      ○ The "images" array was re-initialized with an empty Array. 
+
+        Example: The "clearImages" callback implementation with "spread operator".
+            const clearImages = useCallback(() => setImages(notUsed => []), [])
+
+    - Making The "ArrayState" Component
+
+        Example: refer to "src/pages/ArrayState.tsx" source.
+

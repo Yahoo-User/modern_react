@@ -1,0 +1,26 @@
+*************************************
+* import type statement             *
+*************************************
+
+01. Examples:
+
+    import type { FC } from "react"                                 <--- ***
+    import { Component } from "react
+
+    - In TypeScript, `Type` is only necessary when compiling.
+      After compilation, `Type-related` information disappeared.    <--- ***
+
+      Thus, `FC` Type is imported by `import type` keyword.         <--- ***
+
+    - Besides, `Class` have methods & fields which acts physically.
+
+      After compilation into JavaScript codes,
+      The `Class` keeps remained as compiled form.                  <--- ***
+
+      Thus, `Component` is imported by `import` keyword.            <--- ***
+
+
+02. `import type` sentence is only *necessary*
+     when importing `type` in TypeScript.                           <--- ***
+
+

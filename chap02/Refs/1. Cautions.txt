@@ -1,0 +1,98 @@
+*************************************
+* Cautions                          *
+*************************************
+
+
+1. In "src/index.ts" file, The following sentence is required, 
+   regardless of usage of the following imported module.
+
+        import React from "react"
+
+
+    - If *NOT*, The following exception occurred:
+
+        TS1208: 'index.tsx' cannot be compiled under '--isolatedModules'
+                defined in the 'tsconfig.json' file,
+                because it is considered a global script file.
+
+        Add an import, export, or an "empty" 'export {}' statement to make it a module.
+
+
+2. If attempted to append an virtual React element into the physical HTML DOM tree,
+   The following exception occurred:
+
+    Argument of type 'DetailedReactHTMLElement<HTMLAttributes<HTMLElement>, HTMLElement>'
+    is *NOT* assignable to parameter of type 'Node'.
+
+
+3. @since React v18,
+
+    ReactDOM.createRoot(
+
+        // Act as root container which all children React elements appended.
+        document.getElementById('root') as HTMLElement  // "as": Type Casting == Type Assertion
+
+    ).render(
+
+        // (2) Also, "React Component".
+        //     Checking codes, shows the error if there are errors.
+        <React.StrictMode>
+
+            // (1) <App /> is called, "React Component"
+            <App />
+
+        </React.StrictMode>
+    );
+
+
+4. @until React v17,
+
+    /*
+        Warning: "ReactDOM.render" is no longer supported in "React 18".        <--- ***
+        Use "createRoot" instead.                                               <--- ***
+        
+        Until you switch to the new API, your app will behave as if it's running React 17.
+        Learn more: https://reactjs.org/link/switch-to-createroot
+    */
+
+    ReactDOM.render(
+        // 1. React virtual element.
+        <App />,
+
+        // 2. Physcail HTML DOM element to act as a root container.
+        document.querySelector("#root"),
+
+        // 3. Callback.
+        () => console.log("Done.")
+    );
+
+
+5. When creating a React Web App Project with "npx" command & "create-react-app" package,
+   Please install an additional package of the following definitely:
+
+        > npx create-react-app <react-project-folder> --template typescript
+        > npm i -D @babel/plugin-proposal-private-property-in-object
+
+    - When running "npm test", 
+      If @babel/plugin-proposal-private-property-in-object package *NOT* exists,
+      Warning occurred. Thus, To solve the warning, this package is required.
+
+
+6. TypeScript `Optional Chaining Operator` - symbol(?.)
+
+    - Example: 
+
+        document.querySelector('#root')?.addEventListener('click', (e) => {})
+
+    - This operator only could be used when prior object is `null`.    <--- ***
+    - *NOT* `undefined`.                                               <--- ***
+
+    - This operator cannot be used in the sentence
+      that Rvalue assigns a value to the Lvalue Like the following:
+
+        document.querySelector('#root')?.onclick = "callback"   // XX
+
+      That is, The left-hand side of an assignment expression
+      may not be an optional property access.                           <--- ***
+      
+    - 

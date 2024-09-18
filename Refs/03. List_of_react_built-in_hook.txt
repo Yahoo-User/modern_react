@@ -1,0 +1,2633 @@
+*******************************************************
+* 03. List of Built-in React Hooks                    *
+*******************************************************
+
+
+---------------------------------
+01. useCallback
+---------------------------------
+
+	const cachedFn = useCallback(fn, dependencies)
+
+■ The "useCallback" is a React Hook that lets you cache a function definition between re-renders.
+  --------------------------------
+  "useCallback"은, 재렌더링 사이에 함수정의를 캐시할 수 있게 해주는, React Hook입니다.
+
+
+■ Reference
+
+	"useCallback(fn, dependencies)"
+
+
+  ○ Description
+  	Call useCallback at the top level of your component to cache a "function definition" between "re-renders" :
+  --------------------------------
+	당신의 컴포넌트의 최상위 수준에서 "useCallback" 호출하여, "재렌더링" 간에 "함수정의"를 캐시합니다 :
+
+
+  ○ 매개변수(Parameters)
+
+	① fn: The function value that you want to cache.
+		- It can take any arguments and return any values.
+		- React will return (not call!) your function back to you during the initial render.
+		- On next renders, React will give you the same function again
+		  if the dependencies have not changed since the last render.
+		  Otherwise, it will give you the function that you have passed during the current render,
+		  and store it in case it can be reused later.
+		- React will not call your function.
+		- The function is returned to you so you can decide when and whether to call it.
+		---------------------------------
+		● 캐시할 함수값 입니다. 
+		- 모든 인자를 사용하고, 모든 값을 반환할 수 있습니다. 
+		- React는 초기 렌더링 중에, 당신의 함수를, 당신에게 다시 반환합니다. (호출하지 않습니다!).
+		- 다음 렌더링에서, React는 마지막 렌더링 이후,
+		  의존성("dependencies")이 변경되지 않은 경우, 동일한 함수를 다시 제공합니다.
+		  그렇지 않으면, 현재 렌더링 중에 개발자가 전달한 함수를 제공하고, 나중에 다시 사용할 수 있도록 저장합니다.
+		- React는 함수를 호출하지 않습니다. 
+		- 함수가 개발자에게 반환되므로, 해당 함수의 호출 시기와 여부를 결정할 수 있습니다.
+
+	② dependencies: The list of all "reactive" values referenced inside of the "fn" code. 
+		- The "reactive" values include "props", "state", 
+		  and all the "variables" and "functions" declared directly inside your component body.
+		- If your linter is configured for React,
+		  it will verify that every reactive value is correctly specified as a dependency.
+		- The list of dependencies must have a constant number of items and 
+		  be written inline like "[dep1, dep2, dep3]".
+		- React will compare each dependency with its previous value using the "Object.is" comparison algorithm.
+		---------------------------------
+		● fn 코드 내에서 참조되는 모든 반응값의 목록입니다.
+		- 반응형(reactive) 값에는 ① "props"  ② "state" 
+		  그리고 ③ 컴포넌트 "본문" 내부에 직접 선언된 모든 "변수"와 "함수"가 포함됩니다.
+		- linter가 React 용으로 구성된 경우,
+		  모든 반응형(reactive) 값이 종속성(dependencies)으로 올바르게 지정되었는지 확인합니다.
+		- 종속성 목록(DL)에는 일정한 수의 항목이 있어야 하며, 
+		  "[dep1, dep2, dep3]" 와 같이 인라인으로 작성되어야 합니다.
+		- React는 "Object.is" 비교 알고리즘을 사용하여, 각 종속성(dependency)을 이전값과 비교합니다.
+
+
+  ○ 반환(Returns): On the initial render, "useCallback" returns the "fn" function you have passed.
+
+		- During subsequent renders, it will either return an already stored "fn" function
+		  from the last render(if the dependencies haven’t changed),
+		  or return the "fn" function you have passed during this render.
+		---------------------------------
+		● 초기 렌더링에서, "useCallback"는 전달한 fn함수를 반환합니다.
+
+		- 후속 렌더링 중에는, 마지막 렌더링에서 이미 저장된 fn 함수(종속성이 변경되지 않은 경우)를 반환하거나, 
+		  이 렌더링 중에 전달한 fn 함수를 반환합니다.
+
+
+■ 주의사항(Caveats) 
+
+  ○ useCallback is a Hook, so you can only call it at the top level of your component or your own Hooks.
+  ○ You can’t call it inside loops or conditions.
+  ○ If you need that, extract a new component and move the state into it.
+  ○ React will not throw away the cached function unless there is a specific reason to do that.
+  	For example, in development, React throws away the cache when you edit the file of your component.
+  	Both in development and in production,
+	React will throw away the cache if your component suspends during the initial mount.
+  ○ In the future, React may add more features that take advantage of throwing away the cache\
+    for example, if React adds built-in support for virtualized lists in the future, 
+  	it would make sense to throw away the cache for items that scroll out of the virtualized table viewport. 
+  ○ This should match your expectations if you rely on useCallback as a performance optimization. 
+  	Otherwise, a state variable or a ref may be more appropriate.
+  ---------------------------------
+  ○ "useCallback" 는 Hook이므로, 컴포넌트의 최상위 레벨 또는 자신의 Hook에서만, 호출할 수 있습니다. 
+  ○ 루프 또는 조건 내에서 호출할 수 없습니다.
+  ○ 필요한 경우, 새 컴포넌트를 추출하고 상태(state)를 해당 컴포넌트로 이동합니다.
+  ○ React는 특별한 이유가 없는 한, 캐시된 함수를 버리지 않습니다. 
+	예를들어, 개발 중에 React는, 컴포넌트의 파일을 편집할 때, 캐시를 버립니다. 
+	개발과 프로덕션 모두에서, React는 초기 마운트 중에 컴포넌트가 일시중단되면, 캐시를 버립니다.
+  ○ 앞으로 React는 캐시를 버리는 것을 활용하는 더 많은 기능을 추가할 수 있습니다.
+	예를들어, React가 미래에 가상화된 목록에 대한 내장지원을 추가한다면,
+	가상화된 테이블 뷰포트에서 스크롤되는 항목에 대한 캐시를 버리는 것이 합리적일 것입니다.
+  ○ 이는 성능 최적화에, "useCallback"을 의존하는 경우, 기대치와 일치해야 합니다.
+	그렇지 않으면, 상태변수(state variable) 또는 "ref"가 더 적절할 수 있습니다.
+
+
+■ 사용법 #1 - Skipping re-rendering of components
+
+  ○ 렌더링 성능을 최적화 할 때, 자식컴포넌트에 전달할 "함수"를 캐시해야 하는 경우가 있습니다.
+  ○ 먼저 이 작업을 수행하는 방법에 대한 구문을 살펴본 다음, 어떤 경우에 유용한지 살펴보겠습니다.
+
+  ○ 컴포넌트가, "re-rendering" 하는 사이에, 함수를 캐시하려면, 해당 함수정의를 "useCallback" Hook으로 래핑하세요:
+
+		import { useCallback } from 'react';
+
+		function ProductPage({ productId, referrer, theme }) {
+
+			const handleSubmit = useCallback((orderDetails) => {		<--- ***
+				post('/product/' + productId + '/buy', {
+					referrer,
+					orderDetails,
+				});
+			}, [productId, referrer]);
+
+			// ...
+
+  ○ 다음 두 가지를 "useCallback" hook에 전달해야 합니다.
+
+	1. "Function Definition"	- "re-rendering" 간에 캐시하려는 함수정의 입니다.
+	2. "Dependency List" 		- 함수 안에서 사용되는 컴포넌트 내의 모든 값을 포함합니다.
+
+  ○ 초기 렌더링 시, 개발자가 "useCallback"에서 얻게 될 반환된 함수는,
+    개발자가 전달한 바로 그 함수가 될 것입니다.
+
+  ○ 그 다음 렌더링에서, React는 현재 종속성을, 이전 렌더링 중에 전달한 종속성과 비교합니다.
+
+	비교결과, 종속성이 변경되지 않은 경우, (Object.is으로 비교하여)
+	"useCallback" 훅은 이전과 동일한 함수를 반환합니다.
+
+	그렇지 않으면, "useCallback" 훅은 현재 렌더링에서 전달한 함수를 반환합니다.
+
+  ○ 즉, "useCallback" 훅은, 종속성이 변경될 때까지, "re-renders" 사이에, 해당 함수를 캐시합니다.
+
+  ○ 이것이 언제 유용한지 알아보기 위해, 예제를 살펴보겠습니다:
+
+	- ProductPage 컴포넌트에서 handleSubmit 함수를, 그 아래 ShippingForm 컴포넌트로, 전달한다고 가정해 보겠습니다.
+
+		function ProductPage({ productId, referrer, theme }) {
+			// ...
+
+			return (
+				<div className={theme}>
+				<ShippingForm onSubmit={handleSubmit} />
+				</div>
+			);
+
+  ○ 만일 "theme" prop 를 토글하면 앱이 잠시 멈추지만,
+	개발자의 "JSX"에서 "<ShippingForm />"을 제거하면 빠르게 느껴짐을, 개발자는 알 수 있습니다.
+
+	이것은 개발자에게 "ShippingForm" 컴토넌트를 최적화할 가치가 있음을 알려줍니다.
+
+  ○ 기본적으로, 컴포넌트가 재렌더링 될 때, React는 모든 자식을 재귀적으로 다시 렌더링합니다.
+	이것이 바로 ProductPage가 다른 theme로 재렌더링 할 때, ShippingForm 컴포넌트도 재렌더링 되는 이유입니다.
+	이것은, 재렌더링하는 데 많은 계산이 필요하지 않은 컴포넌트에는 적합합니다.
+
+  ○	그러나 재렌더링이 느린 것을 확인한 경우에는, 다음과 예제와 같이, 
+	ShippingForm 컴포넌트의 "props"이 마지막 렌더링과 동일할 때, 해당 컴토넌트를 "memo"로 래핑하여,
+	ShippingForm 컴포넌트의 재렌더링을 건너뛰도록 지시할 수 있습니다:
+
+	  	import { memo } from 'react';
+
+		const ShippingForm = memo(function ShippingForm({ onSubmit }) {
+			// ...
+		});
+
+  ○ 이 변경으로, ShippingForm 컴포넌트는 자기의 모든 "props"가 마지막 렌더링과 동일한 경우, 재렌더링을 건너뜁니다.
+	이것이 바로 언제 함수를 캐싱하는 것이 중요해질 때 입니다!					<--- ***
+
+  ○ "useCallback" hook 없이, handleSubmit 함수를 정의했다고 가정해 보겠습니다:
+
+		function ProductPage({ productId, referrer, theme }) {
+
+			// Every time the "theme" changes, this will be a "different" function...	(***)
+			function handleSubmit(orderDetails) {
+				post('/product/' + productId + '/buy', {
+					referrer,
+					orderDetails,
+				});
+			} // handleSubmit
+			
+			return (
+				<div className={theme}>
+					{/* ... so ShippingForm's "props" will never be the same, and it will re-render every time */}	<--- ***
+					<ShippingForm onSubmit={handleSubmit} />
+				</div>
+			);
+
+		} // ProductPage
+
+  ○ JavaScript에서 "function() {}" 또는 "() => {}"는 항상 다른 함수를 생성합니다.
+	이는 "{}" 객체 리터럴이 항상 새 객체를 생성하는 방식과 유사합니다.
+	  
+	일반적으로, 이는 문제가 되지 않지만, 이것은 ShippingForm의 "props"이 결코 동일하지 않으며, 
+	메모 최적화(memo optimization)가 작동하지 않음을 의미합니다.
+
+  ○	"useCallback" 이 유용한 곳은 다음과 같습니다:
+
+		function ProductPage({ productId, referrer, theme }) {
+
+			// 1. Tell React to cache your function between re-renders...
+			const handleSubmit = useCallback((orderDetails) => {			<--- ***
+				post('/product/' + productId + '/buy', {
+					referrer,
+					orderDetails,
+				});
+			}, [productId, referrer]); // 2. ...so as long as these dependencies don't change...
+
+			return (
+				<div className={theme}>
+					{/* 3. ...ShippingForm will receive the same "props" and can "skip" re-rendering */}
+					<ShippingForm onSubmit={handleSubmit} />
+				</div>
+			);
+		} // ProductPage
+
+  ○ By wrapping handleSubmit in useCallback,
+  	you ensure that it’s the same function between the re-renders (until dependencies change).
+	
+	You don’t have to wrap a function in useCallback unless you do it for some specific reason.
+	In this example, the reason is that you pass it to a component wrapped in memo, 
+	and this lets it skip re-rendering.
+	
+	There are other reasons you might need useCallback which are described further on this page.
+
+  ○ handleSubmit을 useCallback으로 래핑하면, 
+    (종속성이 변경될 때까지는) 재렌더링할 때 동일한 함수가 되도록 할 수 있습니다.
+
+    특별한 이유가 없는 한, "useCallback"훅으로 함수를 래핑 할 필요가 없습니다.
+	
+	이 예제에서, 그 이유는 "memo"로 래핑된 컴포넌트에 전달하여, 재렌더링을 건너뛸 수 있기 때문입니다.
+	이 페이지에 자세히 설명된 다른 이유가 필요할 수 있습니다:
+
+  ○ Note : 성능 최적화를 위해서만, "useCallback"을 사용해야 합니다.
+
+	코드가 작동하지 않으면, 먼저 근본적인 문제를 찾아 수정하십시오.
+	그런 다음 다시 "useCallback" 추가할 수 있습니다.
+
+
+■ 사용법 #2 - Updating "state" from a "memoized" callback
+
+  ○ Sometimes, you might need to update state based on previous state from a memoized callback.
+  	때로는, 메모된(memoized) 콜백의 이전 상태를 기반으로, 상태(state)를 업데이트 해야 할 수도 있습니다.
+  
+  ○ This handleAddTodo function specifies todos as a dependency because it computes the next todos from it:
+  	이 handlerAddTodo 함수는 다음 할 일을 계산하기 때문에, 할 일을 종속성으로 지정합니다:
+
+		function TodoList() {
+			const [todos, setTodos] = useState([]);				<--- ***
+
+			const handleAddTodo = useCallback((text) => {		<--- ***
+				const newTodo = { id: nextId++, text };
+
+				setTodos([...todos, newTodo]);					<--- ***
+			}, [todos]);
+
+			// ...
+
+  ○ You’ll usually want memoized functions to have as few dependencies as possible.
+
+  	When you read some state only to calculate the next state, 
+	you can remove that dependency by passing an updater function instead:
+
+	---------------------------------
+
+	일반적으로 메모된(memoized) 함수에는 가능한 한 적은 종속성을 갖기를 원할 것입니다.
+
+	다음 상태를 계산하기 위해 일부 상태(state)를 읽는 경우,
+	대신 업데이트 함수(updater function)를 전달하여, 해당 종속성을 제거할 수 있습니다:
+
+	---------------------------------
+
+		function TodoList() {
+			const [todos, setTodos] = useState([]);				<--- ***
+
+			const handleAddTodo = useCallback((text) => {
+				const newTodo = { id: nextId++, text };
+
+				setTodos(todos => [...todos, newTodo]);			<--- ***
+			}, []); // ✅ No need for the "todos" dependency
+
+			// ...
+
+  ○ Here, instead of making todos a dependency and reading it inside,
+  	you pass an instruction about how to update the state (todos => [...todos, newTodo]) to React.
+
+	---------------------------------
+
+	여기에서는, todos를 종속성으로 만들고 내부에서 읽는 대신, 
+	상태(state) (todos => [...todos, newTodo])를 업데이트하는 방법에 대한 지침을, React에 전달합니다.
+
+
+■ Troubleshooting #1 - Every time my component renders, "useCallback" returns a different function
+
+  ○ Make sure you’ve specified the dependency array as a second argument!
+
+  ○ If you forget the dependency array, "useCallback" will return a new function every time:
+
+		function ProductPage({ productId, referrer }) {
+
+			const handleSubmit = useCallback((orderDetails) => {				<--- ***
+				post('/product/' + productId + '/buy', {
+					referrer,
+					orderDetails,
+				});
+			}); // 🔴 Returns a new function every time: no dependency array	<--- ***
+
+			// ...
+
+  ○ This is the "corrected" version passing the "dependency array" as a second argument:
+
+		function ProductPage({ productId, referrer }) {
+
+			const handleSubmit = useCallback((orderDetails) => {				<--- ***
+				post('/product/' + productId + '/buy', {
+					referrer,
+					orderDetails,
+				});
+			}, [productId, referrer]); // ✅ Does not return a new function unnecessarily	<--- ***
+
+			// ...
+
+  ○ If this doesn’t help, then the problem is that at least one of your dependencies is different from the previous render.
+  	You can debug this problem by manually logging your dependencies to the console:
+
+		const handleSubmit = useCallback((orderDetails) => {					<--- ***
+			// ..
+		}, [productId, referrer]);
+
+		console.log([productId, referrer]);										<--- ***
+
+  ○ You can then right-click on the arrays from different re-renders in the console 
+  	and select “Store as a global variable” for both of them. 
+	
+	Assuming the first one got saved as temp1 and the second one got saved as temp2, 
+	you can then use the browser console to check whether each dependency in both arrays is the same:
+
+		Object.is(temp1[0], temp2[0]); // Is the first dependency the same between the arrays?		<--- ***
+		Object.is(temp1[1], temp2[1]); // Is the second dependency the same between the arrays?		<--- ***
+		Object.is(temp1[2], temp2[2]); // ... and so on for every dependency ...					<--- ***
+
+  ○ When you find which dependency is breaking memoization,
+  	either find a way to remove it, or memoize it as well.
+
+
+■ Troubleshooting #2 - I need to call "useCallback" for each list item in a loop, but it’s not allowed
+
+  ○ Suppose the Chart component is wrapped in "memo".
+
+    You want to skip "re-rendering" every Chart in the list when the ReportList component re-renders.
+	However, you can’t call "useCallback" in a "loop":
+
+		function ReportList({ items }) {											<--- ***
+			return (	
+				<article>
+					{items.map(item => {
+						// 🔴 You can't call "useCallback" in a loop like this:
+						const handleClick = useCallback(() => {						<--- *** : XX
+							sendReport(item)
+						}, [item]);
+
+						return (
+							<figure key={item.id}>
+								<Chart onClick={handleClick} />
+							</figure>
+						);
+					})}
+				</article>
+			);
+		}
+
+  ○ Instead, extract a component for an individual item, and put "useCallback" there:
+
+		function ReportList({ items }) {						<--- ***
+			return (	
+				<article>
+					{items.map(item =>
+						<Report key={item.id} item={item} />	<--- ***
+					)}
+				</article>
+			);
+		}
+
+		function Report({ item }) {								<--- ***
+			// ✅ Call "useCallback" at the top level:
+			const handleClick = useCallback(() => {				<--- ***
+				sendReport(item)
+			}, [item]);
+
+			return (
+				<figure>
+					<Chart onClick={handleClick} />
+				</figure>
+			);
+		}
+
+  ○ Alternatively, you could remove "useCallback" in the last snippet and instead wrap Report itself in "memo".
+  	If the item prop does not change, Report will "skip" re-rendering, so Chart will "skip" re-rendering too:
+
+		function ReportList({ items }) {						<--- ***
+			// ...
+		}
+
+		const Report = memo(function Report({ item }) {			<--- ***
+			function handleClick() {
+				sendReport(item);
+			}
+
+			return (
+				<figure>
+					<Chart onClick={handleClick} />
+				</figure>
+			);
+		});
+
+
+---------------------------------
+02. useContext
+---------------------------------
+
+	const value = useContext(SomeContext)
+
+■ The "useContext" is a React Hook that lets you read and subscribe to "context" from your "component".
+	(Component 에서 context 를 읽고 구독할 수 있게 해주는 React Hook)
+
+
+■ Example
+
+	import { useContext } from 'react';
+
+	function MyComponent() {
+		const theme = useContext(ThemeContext);				<--- ***
+
+		// ...
+
+
+■ Reference
+
+		useContext(SomeContext)
+
+  ○ Call "useContext" at the top level of your component to read and subscribe to "context".
+	---------------------------------
+	"context"를 읽고 구독하려면, 컴포넌트의 최상위 수준에서, "useContext"를 호출하세요.
+
+		import { useContext } from 'react';
+
+		function MyComponent() {
+			const theme = useContext(ThemeContext);
+			// ...
+
+  ○ Parameters
+	① SomeContext
+	   	- The "context" that you’ve previously created with "createContext".
+	   	- The "context" itself does *NOT* hold the information,
+	   	  it *ONLY* represents the "kind" of information you can provide or read from "components".
+		---------------------------------
+	   	- 이전에 "createContext"를 사용하여 생성한 "컨텍스트"입니다.
+		- "컨텍스트" 자체는 정보를 *포함하지* 않으며, 
+		  *오직* "컴포넌트"에서 제공하거나 읽을 수 있는 정보의 "종류"를 나타냅니다.
+
+  ○ Returns
+	● "useContext" returns the "context" value for the calling "component".
+	● It is determined as the value passed to the closest "SomeContext".
+	● "Provider" above the calling component in the tree.
+	● If there is no such "provider",
+	  then the returned value will be the "defaultValue" you have passed to "createContext" for that "context".
+	● The returned value is *Always* up-to-date.
+	● React automatically re-renders "components" that read some "context" if it changes.
+	---------------------------------
+	● "useContext"는 호출 컴포넌트에 대한 컨텍스트 값을 반환합니다.
+	● 가장 가까운 "SomeContext"에 전달된 값으로 결정됩니다.
+	● 트리에서 호출 "컴포넌트" 위에 있는 "공급자"입니다.
+	● 그러한 "공급자"가 없는 경우, 반환된 값은 해당 "컨텍스트"에 대해, "createContext"에 전달한 "defaultValue"가 됩니다.
+	● 반환된 값은 *항상* 최신상태입니다.
+	● React는 "컨텍스트"가 변경되면, 일부 컨텍스트를 읽는 "컴포넌트"를 자동으로 다시 렌더링 합니다.
+
+  ○ Caveats
+	● "useContext()" call in a component is *NOT* affected by "providers" returned from the same "component".
+	  The corresponding "<Context.Provider>" needs to be above the "component" doing the "useContext()" call.
+	● React automatically re-renders all the children that use a particular context starting from the "provider" that receives a different value.
+	  The previous and the next values are compared with the "Object.is" comparison.
+	  Skipping re-renders with "memo" does *NOT* prevent the children receiving fresh context values.
+	● If your build system produces duplicates modules in the output (which can happen with "symlinks"), this can break "context".
+	  Passing something via context only works if "SomeContext" that you use to provide "context" 
+	  and "SomeContext" that you use to read it are exactly the same object, as determined by "a === comparison".
+	---------------------------------
+	● 컴포넌트의 "useContext()" 호출은, 동일 "컴포넌트"에서 반환된 "제공자"의 영향을 받지 *않습니다*.
+	  해당 "<Context.Provider>"는 "useContext()" 호출을 수행하는 컴포넌트 위에 있어야 합니다.
+	● React는, 다른 값을 받는 "제공자"부터 시작하여, 특정 컨텍스트를 사용하는 모든 하위 항목을, 자동으로 다시 렌더링합니다.
+	  "Object.is" 비교를 통해, 이전값과 다음값을 비교합니다.
+	  "메모"를 사용하여, 재렌더링을 건너뛰어도, 하위항목이 새로운 컨텍스트 값을 수신하는 것이 *아닙니다*.
+	● 빌드 시스템이 출력에 중복모듈을 생성하는 경우("symlinks"에서 발생할 수 있음), 이로인해 "컨텍스트"가 중단될 수 있습니다.
+	  컨텍스트를 통해 무언가를 전달하는 것은, "컨텍스트"를 제공하는데 사용하는 "SomeContext"와 이를 읽는데 사용하는 "SomeContext"가
+	  "a === 비교"에 의해 결정된 대로 정확히 동일한 개체인 경우에만, 작동합니다.
+
+
+■ Usage #1 - Passing data deeply into the tree.
+
+  ○ Call "useContext" at the top level of your component to read and subscribe to "context":
+	---------------------------------
+	"context"를 읽고 구독하려면, 컴포넌트의 최상위 수준에서, "useContext"를 호출하세요:
+
+		import { useContext } from 'react';
+
+		function Button() {
+			const theme = useContext(ThemeContext);
+			// ...
+
+  ○ "useContext" returns the "context value" for the "context" you passed.
+    To determine the "context value", React searches the "component tree"
+	and finds the closest "context provider" above for that particular "context".
+	---------------------------------
+	"useContext"는, 전달한 "컨텍스트"에 대한 "컨텍스트값"을, 반환합니다.
+	"컨텍스트값"을 결정하기 위해, React는 "컴포넌트 트리"를 검색하고, 
+	특정 컨텍스트에 대해, 위에서 가장 가까운 "컨텍스트 공급자"를 찾습니다.
+
+  ○ To pass "context" to a Button,
+  	wrap it or one of its parent components into the corresponding "context provider":
+	---------------------------------
+	"컨텍스트"를 Button에 전달하려면,
+	해당 "컨텍스트 제공자"에, 해당 부모 컴포넌트 중 하나를 래핑합니다:
+
+		function MyPage() {
+			return (
+				<ThemeContext.Provider value="dark">			<--- ***
+					<Form />
+				</ThemeContext.Provider>
+			);
+		}
+
+		function Form() {
+			// ... renders buttons inside ...					<--- ***
+		}
+
+  ○ It doesn’t matter how many layers of components there are between the "provider" and the Button.
+    When a Button anywhere inside of Form calls "useContext(ThemeContext)", it will receive "dark" as the "value".
+	---------------------------------
+	공급자와 버튼 사이에, 몇 개의 컴포넌트 레이어가 있는지는 중요하지 않습니다.
+	Form 내부의 Button이 "useContext(ThemeContext)"를 호출하면, 값으로 "dark"가 수신됩니다.
+
+  ○ Pitfall (위험)
+	"useContext()" always looks for the closest "provider" above the component that calls it.
+	It searches upwards and does *NOT* consider "providers" in the component from which you’re calling "useContext()".
+	---------------------------------
+	"useContext()"는 항상, 이를 호출하는 컴포넌트 위에서, 가장 가까운 "제공자"를 찾습니다.
+	위쪽으로 검색하며, "useContext()"를 호출하는 컴포넌트의 "제공자"를 고려하지 *않습니다*.
+
+  ○ Example:  App.js
+
+		import { createContext, useContext } from 'react';
+
+		const ThemeContext = createContext(null);						<--- ***
+
+		export default function MyApp() {
+			return (
+				<ThemeContext.Provider value="dark">					<--- ***
+					<Form />
+				</ThemeContext.Provider>
+			)
+		}
+
+		function Form() {
+			return (
+				<Panel title="Welcome">									<--- ***
+					<Button>Sign up</Button>							<--- ***
+					<Button>Log in</Button>								<--- ***
+				</Panel>
+			);
+		}
+
+		function Panel({ title, children }) {
+			const theme = useContext(ThemeContext);						<--- ***
+
+			const className = 'panel-' + theme;
+
+			return (
+				<section className={className}>
+					<h1>{title}</h1>
+					{children}
+				</section>
+			)
+		}
+
+		function Button({ children }) {
+			const theme = useContext(ThemeContext);						<--- ***
+			const className = 'button-' + theme;
+
+			return (
+				<button className={className}>
+					{children}
+				</button>
+			);
+		}
+
+
+■ Usage #2 - Updating data passed via context.
+
+  ○ Often, you’ll want the "context" to change over time.
+  	To update "context", combine it with "state".
+    Declare a "state variable" in the parent component, and pass the current state down as the "context value" to the "provider" :
+	---------------------------------
+	종종 시간이 지남에 따라, "컨텍스트"가 변경되기를 원할 것입니다.
+	"컨텍스트"를 업데이트하려면, "상태"와 결합하세요.
+	상위 컴포넌트에서 "상태변수"를 선언하고, "현재상태"를 "컨텍스트값"으로 "제공자"에 전달합니다:
+
+		function MyPage() {
+			const [theme, setTheme] = useState('dark');							<--- ***
+
+			return (
+				<ThemeContext.Provider value={theme}>							<--- ***
+					<Form />
+
+					<Button onClick={() => { setTheme('light'); }}>				<--- ***
+						Switch to light theme
+					</Button>
+				</ThemeContext.Provider>
+			);
+		}
+
+  ○ Now any Button inside of the "provider" will receive the current theme value.
+    If you call "setTheme" to update the theme value that you pass to the "provider",
+	all Button components will "re-render" with the new 'light' value.
+	---------------------------------
+	이제 "공급자" 내부의 모든 버튼은 현재 테마값을 받게 됩니다.
+	"setTheme"를 호출하여, "공급자"에 전달하는 테마값을 업데이트하면,
+	모든 Button 컴포넌트가 새로운 'light' 값으로 "다시 렌더링"됩니다.			<--- ***
+
+  ○ Example: App.js
+
+		import { createContext, useContext, useState } from 'react';
+
+
+		const ThemeContext = createContext(null);								<--- ***
+
+		export default 
+		function MyApp() {
+			const [theme, setTheme] = useState('light');						<--- ***
+
+			return (
+				<ThemeContext.Provider value={theme}>							<--- ***
+					<Form />
+
+					<label>
+						<input
+							type="checkbox"
+							checked={theme === 'dark'}							<--- ***
+							onChange={(e) => { 
+								setTheme(e.target.checked ? 'dark' : 'light')	<--- ***
+							}} />
+						Use dark mode
+					</label>
+				</ThemeContext.Provider>
+			)
+		}
+
+		function Form({ children }) {
+			return (
+				<Panel title="Welcome">											<--- ***
+					<Button>Sign up</Button>									<--- ***
+					<Button>Log in</Button>										<--- ***
+				</Panel>
+			);
+		}
+
+		function Panel({ title, children }) {
+			const theme = useContext(ThemeContext);								<--- ***
+			const className = 'panel-' + theme;
+
+			return (
+				<section className={className}>
+					<h1>{title}</h1>
+					{children}
+				</section>
+			)
+		}
+
+		function Button({ children }) {
+			const theme = useContext(ThemeContext);								<--- ***
+			const className = 'button-' + theme;
+
+			return (
+				<button className={className}>
+					{children}
+				</button>
+			);
+		}
+
+
+---------------------------------
+03. useDebugValue
+---------------------------------	
+
+■ The "useDebugValue" is a React Hook that lets you add a label to a custom Hook in React DevTools.
+	(React DevTools에서, Custom Hook에 라벨을 추가할 수 있게 해주는 React Hook)
+
+	useDebugValue(value, format?)
+
+■ Example
+
+	import { useDebugValue } from 'react';
+
+	function useOnlineStatus() {
+		// ...
+
+		useDebugValue(isOnline ? 'Online' : 'Offline');
+
+		// ...
+	}
+
+
+---------------------------------
+04. useDeferredValue
+---------------------------------
+
+■ The "useDeferredValue" is a React Hook that lets you defer updating a part of the UI.
+	(UI의 일부 업데이트를 연기할 수 있는 React Hook)
+
+	const deferredValue = useDeferredValue(value)
+
+■ Example
+
+	import { useState, useDeferredValue } from 'react';
+
+	function SearchPage() {
+		const [query, setQuery] = useState('');
+		const deferredQuery = useDeferredValue(query);
+
+		// ...
+	}
+
+
+---------------------------------
+05. useEffect
+---------------------------------
+
+   useEffect(setup, dependencies?)
+
+■ "useEffect" is a React Hook that lets you synchronize a component with an external system.
+  ---------------------------------
+  "useEffect"는 컴포넌트를 외부 시스템과 동기화할 수 있는 React Hook 입니다.
+
+■ Reference
+
+  ○ Call "useEffect" at the top level of a React component to declare an "Effect":
+  	---------------------------------
+	"Effect"를 선언하려면, React 컴포넌트의 최상위 수준에서 "useEffect"를 호출하세요:
+
+		import { useEffect } from 'react';
+		import { createConnection } from './chat.js';
+
+
+		function ChatRoom({ roomId }) {
+			const [serverUrl, setServerUrl] = useState('https://localhost:1234');	<--- ***
+
+			useEffect(() => { 	// "setup" function									<--- ***
+				const connection = createConnection(serverUrl, roomId);
+				connection.connect();
+				
+				return () => {	// "cleanup" function
+					connection.disconnect();
+				}
+			}, [serverUrl, roomId]);
+
+			// ...
+		}
+
+  ○ Parameters
+
+	① setup
+		● The function with your Effect’s logic.
+		● Your "setup" function may also optionally return a "cleanup" function.
+		● When your component is added to the DOM, React will run your "setup" function.
+		● After "every re-render" with changed dependencies,
+		  React will first run the "cleanup" function (if you provided it) with the "old" values,
+		  and then run your "setup" function with the "new" values.
+		● After your component is removed from the DOM, React will run your "cleanup" function.
+  		---------------------------------
+		● Effect의 로직을 갖춘 함수입니다.
+		● "setup" 함수는 선택적으로 "cleanup" 함수를 반환할 수도 있습니다.
+		● 컴포넌트가 DOM에 추가되면, React는 "setup" 함수를 실행합니다.						<--- ***: ⓐ
+		● 종속성 변경으로, "매번 재렌더링" 한 후, 
+		  React는 먼저 "이전" 값을 사용하여 "cleanup" 함수 (제공한 경우)을 실행한 다음,
+		  "새" 값을 사용하여 "setup" 함수를 실행합니다.										<--- ***: ⓑ
+		● 컴포넌트가 DOM에서 제거된 후, React는 "cleanup" 함수를 실행합니다.				<--- ***: ⓒ
+
+	② optional dependencies
+		● The list of all "reactive" values referenced inside of the "setup code".
+		● "Reactive" values include "props", "state", and all the "variables" and "functions" 
+		  declared "directly" inside your "component body".
+		● If your linter is configured for React, it will verify that 
+		  "every reactive" value is correctly specified as a dependency.
+		● The list of dependencies must have a constant number of items
+		  and be written inline like "[dep1, dep2, dep3]".
+		● React will compare "each dependency" with its "previous value" using the "Object.is" comparison.
+		● If you omit this argument, your Effect will "re-run" after "every re-render" of the component.
+  		---------------------------------
+		● "설정코드" 내부에서 참조되는 모든 "반응형" 값의 목록입니다.
+		● "반응형" 값에는, ⒜ "props" ⒝ "state" 및 ⒞ "컴포넌트 본문" 내부에서 "직접" 선언된
+		  모든 "변수" 및 함수"가 포함됩니다.
+		● Linter가 React용으로 구성된 경우, "모든 반응성" 값이 종속성으로 올바르게 지정되었는지 확인합니다.
+		● 종속성 목록은 항목수가 일정해야 하며, "[dep1, dep2, dep3]"처럼 인라인으로 작성되어야 합니다.
+		● React는 "Object.is" 비교를 사용하여, "각 종속성"을 "이전 값"과 비교합니다.
+		● 이 인자를 생략하면, 컴포넌트가 "재렌더링 될 때마다", 효과가 "다시 실행"됩니다.	<--- ***: ⓓ
+
+  ○ Returns
+	- "useEffect" returns "undefined".
+
+  ○ Caveats
+
+	- "useEffect" is a Hook, so you can only call it at the top level of your component or your own Hooks.
+	  You can’t call it inside "loops" or "conditions".
+	  If you need that, extract a "new component" and move the "state" into it.
+	  ---------------------------------
+	  "useEffect"는 Hook이므로, 컴포넌트의 최상위 수준이나, 자체 Hook에서만 호출할 수 있습니다.
+	  "루프"나 "조건" 내에서는 호출할 수 없습니다.
+	  필요한 경우, "새 컴포넌트"를 추출하고, "상태"를 해당 컴포넌트로 옮깁니다.
+
+	- If you’re not trying to "synchronize with some external system", you probably don’t need an "Effect".
+	  ---------------------------------
+	  "일부 외부 시스템과 동기화"하려는 것이 아니라면, 아마도 "효과"가 필요하지 않을 것입니다.
+
+	- When Strict Mode is on, React will run one extra "development-only setup + cleanup cycle" 
+	  "before" the "first" real setup.
+	  This is a stress-test that ensures that your "cleanup logic" “mirrors” your setup logic 
+	  and that it stops or undoes whatever the setup is doing.
+	  If this causes a problem, implement the "cleanup" function.
+	  ---------------------------------
+	  Strict 모드가 켜져 있으면, React는, "첫번째" 실제 설정 "전에", 추가 "개발전용 설정+정리 주기"를 한번 실행합니다.
+	  이는 "정리논리"가 설정논리를 "미러링"하고, 
+	  설정이 수행하는 모든 작업을 중지하거나 실행취소하는지 확인하는 스트레스 테스트입니다.
+	  이로 인해 문제가 발생하는 경우, "cleanup" 함수를 구현하십시오.
+
+	- If some of your dependencies are "objects" or "functions" defined inside the component,
+	  there is a risk that they will cause the "Effect" to "re-run" more often than needed.
+
+	  To fix this, remove "unnecessary" object and function dependencies.
+	  You can also extract state updates and non-reactive logic outside of your Effect.
+	  ---------------------------------
+	  종속성 중 일부가 컴포넌트 내부에 정의된 "객체" 또는 "함수"인 경우, 
+	  "효과"가 필요한 것보다 더 자주 "재실행"될 위험이 있습니다.
+
+	  이 문제를 해결하려면, "불필요한" 개체 및 함수 종속성을 제거하세요.
+	  Effect 외부에서 상태 업데이트와 비반응형 로직을 추출할 수도 있습니다.
+
+	- If your Effect wasn’t caused by an interaction (like a click), 
+	  React will generally let the browser paint the updated screen first before running your Effect.
+
+	  If your Effect is doing something visual (for example, positioning a tooltip), 
+	  and the delay is noticeable (for example, it flickers), replace "useEffect" with "useLayoutEffect".
+	  ---------------------------------
+	  Effect가 상호작용(예: 클릭)으로 인해 발생하지 않는경우,
+	  React는, 일반적으로 Effect를 실행하기 전에, 브라우저가 업데이트된 화면을 먼저 그리도록 합니다.
+
+	  효과가 시각적인 작업(예: 도구 설명 위치 지정)을 수행하고, 지연이 눈에 띄는 경우(예: 깜박임), 
+	  "useEffect"를 "useLayoutEffect"로 바꾸세요.
+
+	- Even if your Effect was caused by an interaction (like a click),
+	  the browser may repaint the screen before processing the state updates inside your Effect.
+	  
+	  Usually, that’s what you want.
+	  However, if you must block the browser from repainting the screen, 
+	  you need to replace "useEffect" with "useLayoutEffect".
+	  ---------------------------------
+	  Effect가 상호작용(예: 클릭)으로 인해 발생한 경우에도,
+	  브라우저는, Effect 내부의 상태 업데이트를 처리하기 전에, 화면을 다시 칠할 수 있습니다.
+
+	  일반적으로 그것이 당신이 원하는 것입니다.
+	  그러나, 브라우저가 화면을 다시 그리는 것을 차단해야 하는경우,
+	  "useEffect"를 "useLayoutEffect"로 바꿔야 합니다.
+
+	- Effects only run on the client.
+	  They don’t run during server rendering.
+	  ---------------------------------
+	  효과는 클라이언트에서만 실행됩니다.
+	  서버 렌더링 중에는 실행되지 않습니다.
+
+■ Usage #1	- Connecting to an external system
+
+  ○ Some components need to stay connected to the network, some browser API, or a third-party library, 
+	while they are displayed on the page.
+	These systems aren’t controlled by React, so they are called external.
+
+	To connect your component to some external system, call useEffect at the top level of your component:
+	---------------------------------
+	일부 컴포넌트는 페이지에 표시되는 동안, 네트워크, 일부 브라우저 API 또는 타사 라이브러리에 계속 연결되어 있어야 합니다.
+	이러한 시스템은 React에 의해 제어되지 않으므로 외부라고 합니다.
+
+	컴포넌트를 외부 시스템에 연결하려면, 컴포넌트의 최상위 수준에서 "useEffect"를 호출하세요.
+
+		import { useEffect } from 'react';
+		import { createConnection } from './chat.js';
+
+		function ChatRoom({ roomId }) {
+			const [serverUrl, setServerUrl] = useState('https://localhost:1234');		<--- ***
+
+			useEffect(() => {															<--- ***
+				const connection = createConnection(serverUrl, roomId);
+				connection.connect();
+
+				return () => {
+					connection.disconnect();
+				};
+			}, [serverUrl, roomId]);													<--- ***
+
+			// ...
+		}
+
+  ○ You need to pass two arguments to "useEffect" :
+
+	① A setup function with setup code that connects to that system.
+	   It should return a cleanup function with cleanup code that disconnects from that system.
+	② A list of dependencies including every value from your component used inside of those functions.
+	---------------------------------
+	"useEffect"를 사용하려면, 두 개의 인자를 전달해야 합니다 :
+
+	① 해당 시스템에 연결되는 설정코드가 있는 설정함수 입니다.
+	   해당 시스템과의 연결을 끊는 정리코드가 포함된 정리함수를 반환해야 합니다.
+	② 해당 함수 내에서 사용되는 컴포넌트의 모든 값을 포함한 종속성 목록입니다.
+
+  ○ React calls your setup and cleanup functions whenever it’s necessary, which may happen multiple times:
+
+	① Your setup code runs when your component is added to the page (mounts).
+	② After every re-render of your component where the dependencies have changed:
+	   ● First, your cleanup code runs with the old props and state.
+	   ● Then, your setup code runs with the new props and state.
+	③ Your cleanup code runs one final time after your component is removed from the page (unmounts).
+	  ---------------------------------
+	React는 필요할 때마다 설정 및 정리 기능을 호출하며, 이는 여러 번 발생할 수 있습니다 :
+
+	① 페이지에 컴포넌트를 추가(마운트)할 때, 설정코드가 실행됩니다.
+	② 종속성이 변경된 컴포넌트를 다시 렌더링할 때마다, 다음을 수행합니다.
+	   ● 첫째, 정리코드는 이전 props 및 state를 사용하여 실행됩니다.
+	   ● 그러면 설정코드가 새로운 props 및 state와 함께 실행됩니다.
+	③ 컴포넌트가 페이지에서 제거(마운트해제)된 후, 정리코드가 마지막으로 한번 실행됩니다.
+
+  ○ Let’s illustrate this sequence for the example above:
+
+	● When the ChatRoom component above gets added to the page, 
+	  it will connect to the chat room with the initial serverUrl and roomId.
+	● If either serverUrl or roomId change as a result of a re-render
+	  (say, if the user picks a different chat room in a dropdown),
+	  your Effect will disconnect from the previous room, and connect to the next one.
+	● When the ChatRoom component is removed from the page, your Effect will disconnect one last time.
+	---------------------------------
+	위의 예에서 이 순서를 설명해 보겠습니다 :
+
+	● 위의 ChatRoom 컴포넌트가 페이지에 추가되면 초기 serverUrl 및 roomId로 채팅방에 연결됩니다.
+	● 재렌더링의 결과로 serverUrl 또는 roomId가 변경되는 경우 (예: 사용자가 드롭다운에서 다른 채팅방을 선택하는 경우),
+	  효과는 이전 방과의 연결이 끊어지고 다음 방에 연결됩니다.
+	● ChatRoom 컴포넌트가 페이지에서 제거되면 마지막으로 Effect의 연결이 끊어집니다.
+
+  ○ To help you find bugs, in development React runs setup and cleanup one extra time before the setup.
+	This is a stress-test that verifies your Effect’s logic is implemented correctly.
+	If this causes visible issues, your cleanup function is missing some logic.
+	The cleanup function should stop or undo whatever the setup function was doing.
+	The rule of thumb is that the user shouldn’t be able to distinguish between the setup being called once (as in production)
+	and a setup → cleanup → setup sequence (as in development).
+	---------------------------------
+	버그를 찾는 데 도움을 주기 위해, 개발단계에서 React는 설정 전에 한번 더 설정 및 정리를 실행합니다.
+	이는 Effect의 로직이 올바르게 구현되었는지 확인하는 스트레스 테스트입니다.
+	이로인해, 눈에 띄는 문제가 발생하면, 정리 함수에 일부 논리가 누락된 것입니다.
+	정리 함수는 설정 함수가 수행하던 모든 작업을 중지하거나 실행 취소해야 합니다.
+	경험상 사용자는 한번 호출되는 설정(프로덕션에서와 같이)과 설정 → 정리 → 설정 순서(개발에서와 같이)를 구별할 수 없어야 합니다.
+
+  ○ Try to write every Effect as an independent process and think about a single setup/cleanup cycle at a time.
+	It shouldn’t matter whether your component is mounting, updating, or unmounting.
+	When your cleanup logic correctly “mirrors” the setup logic, 
+	your Effect is resilient to running setup and cleanup as often as needed.
+	---------------------------------
+	모든 Effect를 독립적인 프로세스로 작성하고 한 번에 단일 설정/정리 주기를 생각해 보십시오.
+	컴포넌트가 마운트, 업데이트 또는 마운트 해제 중인지는 중요하지 않습니다.
+	정리 논리가 설정 논리를 올바르게 "미러링"하면 Effect는 필요한 만큼 자주 설정 및 정리를 실행하는 데 탄력성을 갖습니다.
+
+  ○ Note :
+
+	An Effect lets you keep your component synchronized with some external system (like a chat service).
+
+	Here, external system means any piece of code that’s not controlled by React, such as:
+		● A timer managed with setInterval() and clearInterval().
+		● An event subscription using window.addEventListener() and window.removeEventListener().
+		● A third-party animation library with an API like animation.start() and animation.reset().
+
+	If you’re not connecting to any external system, you probably don’t need an Effect.
+	---------------------------------
+	Effect를 사용하면 컴포넌트를 일부 외부 시스템(예: 채팅 서비스)과 동기화된 상태로 유지할 수 있습니다.
+
+	여기서, 외부 시스템은 다음과 같이 React에 의해 제어되지 않는 코드 조각을 의미합니다 :
+		● setInterval(),clearInterval()로 관리되는 타이머.
+		● window.addEventListener() 및 window.removeEventListener()를 사용한 이벤트 구독.
+		● animation.start() 및 animation.reset()과 같은 API를 갖춘 타사 애니메이션 라이브러리.
+
+	외부 시스템에 연결하지 않는 경우, 효과가 필요하지 않을 수 있습니다.
+
+
+---------------------------------
+06. useId
+---------------------------------
+
+■ The "useId" is a React Hook for generating unique IDs that can be passed to accessibility attributes.
+	(접근성 속성에 전달될 수 있는 고유한 ID를 생성하기 위한 React Hook)
+
+	const id = useId()
+
+
+■ Example
+
+	import { useId } from 'react';
+
+	function PasswordField() {
+		const passwordHintId = useId();
+
+		// ...
+
+
+---------------------------------
+07. useImperativeHandle
+---------------------------------
+
+■ The "useImperativeHandle" is a React Hook that lets you customize the handle exposed as a "ref".
+	("ref"로 노출된 핸들을 커스터마이징 해주는 React Hook)
+
+	useImperativeHandle(ref, createHandle, dependencies?)
+
+
+■ Example
+
+	import { forwardRef, useImperativeHandle } from 'react';
+
+	const MyInput = forwardRef(function MyInput(props, ref) {		<--- ***
+		useImperativeHandle(ref, () => {							<--- ***
+			return {
+				// ... your methods ...
+			};
+		}, []);
+
+		// ...
+
+
+---------------------------------
+08. useInsertionEffect
+---------------------------------
+
+■ The "useInsertionEffect" allows inserting elements into the DOM before any layout effects fire.
+	(레이아웃 효과가 실행되기 전에, DOM에 요소를 삽입할 수 있도록 해주는 React Hook)
+
+	useInsertionEffect(setup, dependencies?)
+
+
+■ Example
+
+	import { useInsertionEffect } from 'react';
+
+	// Inside your CSS-in-JS library
+	function useCSS(rule) {
+		useInsertionEffect(() => {
+			// ... inject <style> tags here ...
+		});
+
+		return rule;
+	}
+
+
+---------------------------------
+09. useLayoutEffect
+---------------------------------
+
+■ The "useLayoutEffect" is a version of "useEffect" that fires before the browser repaints the screen.
+	(브라우저가 화면을 다시 그리기 전에, 실행되는 "useEffect" 버전)
+
+	useLayoutEffect(setup, dependencies?)
+
+
+■ Example
+
+	import { useState, useRef, useLayoutEffect } from 'react';
+
+	function Tooltip() {
+		const ref = useRef(null);
+		const [tooltipHeight, setTooltipHeight] = useState(0);
+
+		useLayoutEffect(() => {
+			const { height } = ref.current.getBoundingClientRect();
+			setTooltipHeight(height);
+		}, []);
+
+		// ...
+
+
+---------------------------------
+10. useMemo
+---------------------------------
+
+■ useMemo(calculateValue, dependencies)
+
+
+■ The "useMemo" is a React Hook that lets you cache the result of a calculation between "re-renders".	<--- ***: ⓐ
+	----------------------------------------------
+  재렌더링 간에, 연산결과를 캐시할 수 있도록 해주는 React Hook.
+
+	const cachedValue = useMemo(calculateValue, dependencies)
+
+
+■ Reference
+
+  ○ Call "useMemo" at the top level of your component to cache a calculation between re-renders
+	----------------------------------------------
+	재렌더링 간의 계산을 캐시하려면, 컴포넌트의 최상위 수준에서, "useMemo"를 호출하세요.
+    
+  ○ Example:
+
+		import { useMemo } from 'react';
+
+		function TodoList({ todos, tab }) {
+			const visibleTodos = useMemo( () => filterTodos(todos, tab), [todos, tab] );
+
+			// ...
+		}
+	
+  ○ Parameters
+
+	① calculateValue
+	   	● The function calculating the value that you want to cache.
+	   	● It should be pure, should take no arguments, and should return a value of any type.
+	   	● React will call your function during the initial render.
+	   	● On next renders, React will return the same value again
+	      if the dependencies have not changed since the last render.
+	   	● Otherwise, it will call "calculateValue", return its result, 
+		  and store it so it can be reused later.
+		----------------------------------------------
+		● 캐시하려는 값을 계산하는 함수입니다.
+		● 순수해야 하고, 인자를 취하지 않아야 하며, 모든 유형의 값을 반환해야 합니다.
+		● React는, 초기 렌더링 중에, 함수를 호출합니다.												<--- ***: ⓑ
+		● 마지막 렌더링 이후, 종속성이 변경되지 않은 경우,  
+		  다음 렌더링에서 React는 동일한 값을 다시 반환합니다.										<--- ***: ⓒ
+		● 그렇지 않으면, "calculateValue"을 호출하고 결과를 반환한 후, 
+		  나중에 다시 사용할 수 있도록 저장합니다.													<--- ***: ⓓ
+
+	② dependencies
+	   	● The list of all reactive values referenced inside of the "calculateValue" code.
+	   	● Reactive values include "props", "state", and "all the variables" and "functions"
+	      declared directly inside your component body.
+	   	● If your linter is configured for React,
+	      it will verify that every reactive value is correctly specified as a dependency.
+	   	● The list of dependencies must have a constant number of items
+	      and be written inline like "[dep1, dep2, dep3]".
+	   	● React will compare each dependency with its previous value 
+	      using the "Object.is" comparison.
+		----------------------------------------------
+		● "calculateValue" 코드 내부에서 참조되는 모든 반응형 값의 목록입니다.
+		● 반응형 값에는 ⓐ "props" ⓑ "state" ⓒ 모든 "변수" 및 ⓓ "함수"가 포함됩니다.				<--- ***: ⓔ
+		● linter 가 React 용으로 구성된 경우, 모든 반응값이 종속성으로 올바르게 지정되었는지 확인합니다.
+		● 종속성 목록은 항목수가 일정해야 하며, "[dep1, dep2, dep3]"처럼 인라인으로 작성되어야 합니다.
+		● React는 "Object.is" 비교를 사용하여, 각 종속성을 이전값과 비교합니다.
+	
+  ○ Returns
+
+	- On the "initial" render, "useMemo" returns the result of calling "calculateValue" with no arguments.
+	- During "next" renders, it will either return an already stored value from the last render
+	  (if the dependencies haven’t changed), or call "calculateValue" again,
+	  and return the result that "calculateValue" has returned.
+	----------------------------------------------
+	- 초기 렌더링에서, "useMemo"는 인자없이 "calculateValue"을 호출한 결과를 반환합니다.			<--- ***: ⓕ
+	- 다음 렌더링 중에는, 마지막 렌더링에서 이미 저장된 값을 반환하거나(종속성이 변경되지 않은 경우),
+	  "calculateValue"을 다시 호출하고, 계산값이 반환한 결과를 반환합니다.							<--- ***: ⓖ
+	
+  ○ Caveats (주의사항)
+	- "useMemo" is a Hook, so you can only call it at the top level of your component or your own Hooks.
+	  You can’t call it inside loops or conditions.
+	  If you need that, extract a new component and move the state into it.
+	  ----------------------------------------------
+	  "useMemo"는 Hook이므로, 컴포넌트의 최상위 수준이나 자체 Hook에서만 호출할 수 있습니다.
+	  루프나 조건 내에서는 호출할 수 없습니다.
+	  필요한 경우, 새 컴포넌트를 추출하고 상태를 해당 컴포넌트로 옮깁니다.
+
+	- In Strict Mode, React will call your calculation function *TWICE* in order to help you find accidental impurities.
+	  This is development-only behavior and does not affect production.
+	  If your calculation function is pure (as it should be), this should not affect your logic.
+	  The result from one of the calls will be ignored.
+	  ----------------------------------------------
+	  엄격모드에서, React는 우발적인 불순물을 찾는 데 도움을 주기위해, 계산함수를 *두번* 호출합니다.
+	  이는 개발전용동작이며, 프로덕션에는 영향을 주지 않습니다.
+	  계산함수가 순수하다면(되어야 하는 대로), 논리에 영향을 주어서는 안됩니다.
+	  호출 중 하나의 결과는 무시됩니다.
+
+	- React will not throw away the cached value unless there is a specific reason to do that.
+	  For example, in development, React throws away the cache when you edit the file of your component.
+	  Both in development and in production, React will throw away the cache
+	  if your component suspends during the initial mount.
+
+	  In the future, React may add more features that take advantage of throwing away the cache
+	  —for example, if React adds built-in support for virtualized lists in the future,
+	   it would make sense to throw away the cache for items that scroll out of the virtualized table viewport.
+
+	  This should be fine if you rely on useMemo solely as a performance optimization.
+	  Otherwise, a state variable or a ref may be more appropriate.
+	----------------------------------------------
+	  React는, 특별한 이유가 없는 한, 캐시된 값을 버리지 않습니다.
+	  예를 들어, 개발 중에 React는 컴포넌트의 파일을 편집할 때, 캐시를 버립니다.					<--- ***: ⓖ
+	  개발과 프로덕션 모두에서, React는 초기 마운트 중에, 컴포넌트가 일시중지되면, 캐시를 버립니다.	<--- ***: ⓗ
+	  앞으로, React는 캐시를 버리는 이점을 활용하는 더 많은 기능을 추가할 수 있습니다.
+	  예를들어, React가 향후에 가상화된 목록에 대한 기본지원을 추가한다면,
+	  가상화된 테이블 뷰포트 밖으로 스크롤되는 항목에 대한 캐시를 버리는 것이 합리적일 것입니다.
+	  성능최적화 목적으로만 "useMemo"를 사용한다면 괜찮을 것입니다.
+	  그렇지 않으면, "상태변수"나 "ref"가 더 적절할 수 있습니다.
+
+
+■ Note
+
+  Caching return values like this is also known as "memoization",
+  this is why this Hook is called "useMemo".
+	----------------------------------------------
+  이와 같이 반환값을 캐싱하는 것을 "메모이제이션"(memoization)이라고도 하며,		
+  이것이 바로 이 Hook을 "useMemo" 라고 부르는 이유입니다.											<--- ***: ⓘ
+
+
+■ Usage #1 - Skipping expensive recalculations 
+
+  ○ To cache a calculation between re-renders,
+  	wrap it in a "useMemo" call at the top level of your component:
+	----------------------------------------------
+	재렌더링할 때마다 계산을 캐시하려면, 컴포넌트의 최상위 수준에서 "useMemo" 호출로, 이를 래핑하세요.
+
+	Example:
+
+		import { useMemo } from 'react';
+
+		function TodoList({ todos, tab, theme }) {
+			const visibleTodos = useMemo(() => filterTodos(todos, tab), [todos, tab]);
+			// ...
+		}
+
+  ○ You need to pass two things to "useMemo":
+
+	1. A "calculation" function that takes no arguments, like "() =>", and returns what you wanted to calculate.
+	2. A list of dependencies including every value within your component that’s used inside your calculation.
+	----------------------------------------------
+	1. "() =>" 와 같이, 인자를 사용하지 않고, 계산하려는 내용을 반환하는 계산함수입니다.
+	2. 계산 내에서 사용되는 컴포넌트 내의 모든 값을 포함한 종속성 목록입니다.
+
+  ○ On the initial render, the value you’ll get from "useMemo" will be the result of calling your calculation.
+	----------------------------------------------
+	초기 렌더링 시, "useMemo"에서 얻는 값은, 계산을 호출한 결과입니다.								<--- ***: ⓙ
+
+	● On every subsequent render, 
+	  React will compare the dependencies with the dependencies you passed during the last render.
+	● If none of the dependencies have changed (compared with Object.is), 
+	  "useMemo" will return the value you already calculated before.
+	  Otherwise, React will re-run your calculation and return the new value.
+	● In other words, "useMemo" caches a calculation result between re-renders until its dependencies change.
+  	---------------------------------
+	● 모든 후속 렌더링에서, React는 마지막 렌더링 중에 전달된 종속성과 종속성을 비교합니다.
+	● 종속성이 변경되지 않은 경우 ("Object.is" 와 비교하여),
+	  "useMemo"는 이전에 이미 계산한 값을 반환합니다.
+	  그렇지 않으면, React는 계산을 다시 실행하고 새 값을 반환합니다.
+	● 즉, "useMemo"는 종속성이 변경될 때까지, 재렌더링 간의 계산결과를 캐시합니다.
+
+  ○ Let’s walk through an example to see when this is useful.
+  	---------------------------------
+  	이것이 언제 유용한지 알아보기 위해 예를 살펴보겠습니다.
+
+	By default, React will re-run the entire body of your component every time that it re-renders.
+
+	For example, if this TodoList updates its state or receives new props from its parent,
+	the filterTodos function will re-run:
+  	---------------------------------
+	기본적으로 React는, 재렌더링될 때마다, 컴포넌트의 전체본문을 다시 실행합니다.
+
+	예를 들어, 이 TodoList가 상태를 업데이트하거나, 상위로부터 새 속성을 받으면,
+	filterTodos 함수가 다시 실행됩니다:
+
+		function TodoList({ todos, tab, theme }) {
+			const visibleTodos = filterTodos(todos, tab);
+
+			// ...
+		}
+
+  ○ Usually, this isn’t a problem because most calculations are very fast.
+    However, if you’re filtering or transforming a large array, or doing some expensive computation,
+	you might want to skip doing it again if data hasn’t changed.
+	
+	If both todos and tab are the same as they were during the last render, 
+	wrapping the calculation in "useMemo" like earlier lets you reuse visibleTodos you’ve already calculated before.
+
+	This type of caching is called "memoization".
+  	---------------------------------
+	일반적으로 대부분의 계산은 매우 빠르기 때문에 문제가 되지 않습니다.
+	그러나 대규모 배열을 필터링 또는 변환하거나 비용이 많이 드는 계산을 수행하는 경우,
+	데이터가 변경되지 않은 경우, 해당 작업을 다시 건너뛰고 싶을 수도 있습니다.
+	할 일과 탭이 모두 마지막 렌더링 동안과 동일한 경우, 이전과 같이 "useMemo"로 계산을 래핑하면, 
+	이전에 이미 계산한 visibleTodo를 재사용할 수 있습니다.
+
+	이러한 유형의 캐싱을 "메모이제이션"이라고 합니다.													<--- ***: ⓙ
+
+  ○ Note
+
+	You should only rely on "useMemo" as a performance optimization.
+	If your code doesn’t work without it, find the underlying problem and fix it first.
+	Then you may add "useMemo" to improve performance.
+  	---------------------------------
+	성능 최적화로는 "useMemo"에만 의존해야 합니다.
+	코드가 없으면, 코드가 작동하지 않으면, 근본적인 문제를 찾아 먼저 수정하세요.
+	그런 다음, 성능을 향상시키기 위해, "useMemo"를 추가할 수 있습니다.
+
+
+■ Usage #2 - Skipping re-rendering of components
+
+  ○ In some cases, "useMemo" can also help you optimize performance of re-rendering child components.
+  	To illustrate this, let’s say this TodoList component passes the visibleTodos as a prop to the child List component:
+  	---------------------------------
+	경우에 따라, "useMemo"는, 하위 컴포넌트를 다시 렌더링하는 성능을 최적화하는 데, 도움이 될 수도 있습니다.
+	이를 설명하기 위해, 이 TodoList 컴포넌트가 visibleTodos를 하위 List 컴포넌트에 소품으로 전달한다고 가정해 보겠습니다:
+
+		export default function TodoList({ todos, tab, theme }) {
+			// ...
+			return (
+				<div className={theme}>
+					<List items={visibleTodos} />
+				</div>
+			);
+		}
+
+  ○ You’ve noticed that toggling the theme prop freezes the app for a moment,
+  	but if you remove <List /> from your JSX, it feels fast.
+	This tells you that it’s worth trying to optimize the List component.
+  	---------------------------------
+	theme prop을 전환하면 앱이 잠시 정지되지만, JSX에서 <List />를 제거하면 속도가 빨라지는 것을 느낄 수 있습니다.
+	이는 List 구성 요소를 최적화해 볼 가치가 있음을 알려줍니다.
+
+  ○ By default, when a component re-renders, React re-renders all of its children recursively.
+    This is why, when TodoList re-renders with a different theme, the List component also re-renders.
+	This is fine for components that don’t require much calculation to re-render.
+	But if you’ve verified that a re-render is slow, you can tell List to skip re-rendering 
+	when its props are the same as on last render by wrapping it in "memo":
+  	---------------------------------
+	기본적으로 컴포넌트가 다시 렌더링되면, React는 모든 하위 컴포넌트들을 재귀적으로 다시 렌더링합니다.	<--- ***: ⓚ
+	이것이 TodoList가 다른 테마로 다시 렌더링될 때, List 컴포넌트도 다시 렌더링되는 이유입니다.
+
+	이는 다시 렌더링하는 데 많은 계산이 필요하지 않은 컴포넌트에 적합합니다.
+	그러나 재렌더링이 느리다는 것을 확인한 경우, props가 마지막 렌더링과 동일할 때,
+	"memo"로 래핑하여 List에 재렌더링을 건너뛰도록 지시할 수 있습니다:
+
+		import { memo } from 'react';
+
+		const List = memo(function List({ items }) {
+			// ...
+		});
+
+  ○ With this change, List will skip re-rendering if all of its props are the same as on the last render.
+    This is where caching the calculation becomes important!
+
+	Imagine that you calculated visibleTodos without "useMemo":
+  	---------------------------------
+	이 변경으로 인해, List는 모든 prop이 마지막 렌더링과 동일하면, 재렌더링을 건너뜁니다.
+	여기서 계산 캐싱이 중요해집니다! 
+	
+	"useMemo" 없이 visibleTodos를 계산했다고 상상해 보세요:
+
+		export default function TodoList({ todos, tab, theme }) {
+			// Every time the theme changes, this will be a different array...
+			const visibleTodos = filterTodos(todos, tab);
+
+			return (
+				<div className={theme}>
+				{/* ... so List's props will never be the same, and it will re-render every time */}
+				<List items={visibleTodos} />
+				</div>
+			);
+		}
+
+  ○ In the above example, the filterTodos function always creates a different array, 
+  	similar to how the {} object literal always creates a new object.
+	Normally, this wouldn’t be a problem, but it means that List props will never be the same, 
+	and your memo optimization won’t work.
+
+  	This is where useMemo comes in handy:
+  	---------------------------------
+	위 예시에서 filterTodos 함수는 항상 다른 배열을 생성합니다.
+	이는, {} 객체 리터럴이 항상 새 객체를 생성하는 방식과 유사합니다.
+	일반적으로 이는 문제가 되지 않지만, List props가 결코 동일하지 않으며, 
+	메모 최적화가 작동하지 않음을 의미합니다.
+
+	"useMemo"가 유용한 곳은 다음과 같습니다:
+
+		export default function TodoList({ todos, tab, theme }) {
+			// Tell React to cache your calculation between re-renders...
+			const visibleTodos = useMemo(
+				() => filterTodos(todos, tab),
+				[todos, tab] // ...so as long as these dependencies don't change...
+			);
+
+			return (
+				<div className={theme}>
+					{/* ...List will receive the same props and can skip re-rendering */}
+					<List items={visibleTodos} />
+				</div>
+			);
+		}
+
+  ○ By wrapping the visibleTodos calculation in "useMemo", 
+  	you ensure that it has the same value between the re-renders (until dependencies change).
+	You don’t have to wrap a calculation in "useMemo" unless you do it for some specific reason.
+	In this example, the reason is that you pass it to a component wrapped in "memo", and this lets it skip re-rendering.
+  	There are a few other reasons to add "useMemo" which are described further on this page.
+  	---------------------------------
+	visibleTodos 계산을 "useMemo"로 래핑하면, 다시 렌더링할 때(종속성이 변경될 때까지) 동일한 값을 갖게 됩니다.
+	특별한 이유가 없는 한, "useMemo"에서 계산을 래핑할 필요는 없습니다.
+	이 예에서 그 이유는 "메모"로 래핑된 컴포넌트에 전달하여 다시 렌더링을 건너뛸 수 있기 때문입니다.
+	이 페이지에서 자세히 설명하는 "useMemo"를 추가하는 몇 가지 다른 이유가 있습니다.
+
+
+---------------------------------
+11. useReducer
+---------------------------------
+
+                 ②       ③                    ①
+               ------  --------              --------  ----------
+■ Usage: const [state, dispatch] = useReducer(reducer, initialArg, init?)			<--- ***: ⓐ
+
+
+■ The "useReducer" is a React Hook that lets you add a "reducer" to your component.	<--- ***: ⓑ
+	(컴포넌트에 reducer를 추가할 수 있도록 해주는 React Hook)
+
+
+■ Reference
+
+  ○ Usage:	useReducer(reducer, initialArg, init?)
+
+  ○ Call "useReducer" at the top level of your component to manage its "state" with a "reducer":
+	----------------------------------
+	"reducer"로 컴포넌트의 "상태(state)"를 관리하려면, 컴포넌트의 최상위 수준에서 "useReducer"를 호출하세요:
+
+
+	import { useReducer } from 'react';
+
+					  ***
+			 ----------------------
+	function reducer(state, action) { ────────┐										<--- ***: ⓒ
+		// ...								  │	
+	}										  │
+											  │
+	function MyComponent() {				  │      "initialArg"
+											  ▼      ------------
+		const [state, dispatch] = useReducer(reducer, { age: 42 });					<--- ***: ⓓ
+
+		// ...
+
+
+■ Parameters
+
+  ① reducer
+  	● The "reducer" function that specifies how the "state" gets updated.
+	● It must be pure, should take the state and action as arguments, and should return the next state.
+	● State and action can be of any types.
+	----------------------------------
+	● "상태"가 업데이트되는 방법을 지정하는 "reducer" 함수.												<--- ***: ⓔ
+	● 순수해야 하며, 상태(state)와 액션(action)을 인자로 가져와, 다음 상태(state)를 반환해야 합니다.	<--- ***: ⓕ
+	● 상태(state)와 액션(action)은 모든 유형이 될 수 있습니다.
+
+  ② initialArg
+    ● The value from which the initial state is calculated.
+	● It can be a value of any type. 
+	  How the initial state is calculated from it depends on the next init argument.
+	----------------------------------
+	● 초기상태(initial state)가 계산되는 값입니다.														<--- ***: ⓖ
+	● 모든 유형의 값이 될 수 있습니다.
+	  초기상태(initial state)가 계산되는 방법은, 다음 "init" 인자에 따라 다릅니다.
+
+  ③ init?
+	● The "initializer" function that should return the "initial state".
+	● If it’s *NOT* specified, the "initial state" is set to "initialArg".
+	  Otherwise, the "initial state" is set to the result of calling "init(initialArg)".
+	----------------------------------
+	● 초기상태(initial state)를 반환해야 하는 초기화(initializer) 함수입니다.							<--- *** 
+	● 지정하지 않을 경우, 초기상태는 "initialArg"로 설정됩니다.											<--- *** 
+	  그렇지 않으면, 초기상태는 "init(initialArg)" 호출결과로 설정됩니다.								<--- ***
+
+
+■ Returns
+
+  ○ "useReducer" returns an "Array" with exactly *two* values:
+		1. The *current* state. 																			<--- ***: ⓔ
+		   During the *first* render, it’s set to "init(initialArg)" or "initialArg" (if there’s no "init").
+		2. The "dispatch(action)" function that lets you "update" the state to a different value
+		   and "trigger" a re-render.																		<--- ***: ⓕ
+  	----------------------------------
+    "useReducer"는 정확히 두 개의 값이 있는 배열을 반환합니다:
+		1. 현재 상태.																						<--- ***
+		   첫번째 렌더링 중에는, "init(initialArg)" 또는 "initialArg" (init가 없는 경우)로, 설정됩니다.
+		2. 상태를 다른 값으로 업데이트하고, 재렌더링을 트리거 할 수 있는 "dispatch(action)" 함수.			<--- ***
+
+                 ①       ②                    
+               ------  --------
+		const [state, dispatch] = useReducer(reducer, { age: 42 });										<--- ***
+
+		function handleClick() {
+			dispatch({ type: 'incremented_age' });														<--- ***
+
+			// ...
+
+
+■ Caveats (주의사항)
+
+  ○ "useReducer" is a Hook, so you can only call it at the top level of your component or your own Hooks.
+    You can’t call it inside loops or conditions.
+	If you need that, extract a new component and move the "state" into it.
+	----------------------------------
+  	"useReducer"는 Hook이므로, 컴포넌트의 최상위 수준이나 자체 Hook에서만 호출할 수 있습니다.
+    루프나 조건 내에서는 호출할 수 없습니다.
+	필요한 경우, 새 컴포넌트를 추출하고 "상태"를 해당 컴포넌트로 옮깁니다.
+
+  ○ In Strict Mode, React will call your reducer and initializer *twice*
+    in order to help you find accidental impurities.
+    This is development-only behavior and does not affect production.
+	If your reducer and initializer are pure (as they should be), this should not affect your logic.
+	The result from one of the calls is ignored.
+	----------------------------------
+  	엄격모드에서, React는, 실수로 발생한 불순물을 찾는 데 도움을 주기 위해,
+    reducer와 initializer을 *두번* 호출합니다.					<--- ***
+    이는 개발전용 동작이며, 프로덕션에는 영향을 주지 않습니다.
+	reducer와 initializer가 순수(순수해야 함)인 경우, 이는 논리에 영향을 미치지 않습니다.
+	호출 중 하나의 결과는 무시됩니다.							<--- ***
+
+
+■ "dispatch(action)" function											<--- ***
+
+  ○ The "dispatch(action)" function returned by "useReducer"
+    lets you "update" the "state" to a different value and "trigger" a "re-render".
+
+    You need to pass the "action" as the only argument to the "dispatch" function:
+	----------------------------------
+  	"useReducer"에서 반환된 "dispatch" 함수를 사용하면, 
+    상태(state)를 다른 값으로 업데이트하고, 재렌더링을 트리거 할 수 있습니다.	<--- ***
+
+    "dispatch(action)" 함수에 대한 유일한 인자로, 액션(action)을 전달해야 합니다:
+						***                   ***
+					 ---------               -------
+		const [state, dispatch] = useReducer(reducer, { age: 42 });				<--- ***
+
+		function handleClick() {
+
+							  "action"
+					 --------------------------
+			dispatch({ type: 'incremented_age' });								<--- ***
+
+			// ...
+
+  ○ React will set the next state to the result of calling the "reducer" function 
+    you’ve provided with the "current state" and the "action" you’ve passed to "dispatch".	<--- ***
+	----------------------------------
+  	React는, "dispatch(action)"에 전달한 "action"와 "현재 상태"를 가지고,
+    제공한 "reducer" 함수를 호출한 결과로, "다음 상태"를 설정합니다.
+
+
+■ Parameters
+
+  ① action (작업)
+  	● The "action" performed by the user.
+	● It can be a value of any type.
+	● By convention, an "action" is usually an object with a "type" property identifying it
+	  and, optionally, other properties with additional information.
+	----------------------------------
+	● 사용자가 수행하는 작업입니다.
+	● 모든 유형의 값이 될 수 있습니다.
+	● 관례적으로 "action"은 일반적으로, 
+	  이를(action) 식별하는 유형(type) 속성과 선택적으로 추가정보가 있는 기타속성이 있는 객체입니다.
+
+
+■ Returns 
+
+  ○ "dispatch(action)" functions do *NOT* have a return value.
+	----------------------------------
+  	"dispatch(action)" 함수에는 반환 값이 없습니다.
+
+
+■ Caveats (주의사항)
+
+  ○ The "dispatch(action)" function *ONLY* updates the "state variable" for the *next* render.
+    If you read the "state variable" after calling the "dispatch(action)" function, 
+	you will still get the old value that was on the screen before your call.
+	----------------------------------
+  	"dispatch(action)" 함수는, 다음 렌더링에 대한 상태변수만 업데이트합니다.
+    "dispatch(action)" 함수를 호출한 후 상태변수를 읽으면, 호출하기 전에 화면에 있었던 이전 값을 계속 얻을 수 있습니다.
+
+  ○ If the new value you provide is identical to the current state, as determined by an "Object.is" comparison,
+    React will skip re-rendering the component and its children.
+
+	This is an optimization.
+
+	React may still need to call your component before ignoring the result, 
+	but it shouldn’t affect your code.
+	----------------------------------
+  	제공한 새 값이 "Object.is" 비교에 의해 결정된 현재상태와 동일하면,
+    React는 컴포넌트와 그 하위 컴포넌트를 재렌더링하는 것을 건너뜁니다.
+
+    이것은 최적화입니다.
+
+	React는 결과를 무시하기 전에, 컴포넌트를 호출해야 할 수도 있지만, 코드에 영향을 주어서는 안 됩니다.
+
+  ○ React "batches" state updates.
+    It updates the screen after all the event handlers have run and have called their set functions.
+	This prevents multiple re-renders during a single event.
+
+	In the rare case that you need to force React to update the screen earlier, 
+	for example to access the DOM, you can use "flushSync".
+	----------------------------------
+	React는 상태 업데이트를 일괄처리합니다.
+
+	모든 이벤트 핸들러가 실행되고 설정된 기능을 호출한 후에, 화면을 업데이트합니다.
+	이렇게 하면, 단일 이벤트 중에 여러 번 재렌더링되는 것을 방지할 수 있습니다.
+
+	예를 들어, DOM에 액세스하기 위해, React가 화면을 더 일찍 업데이트하도록 강제해야 하는 드문 경우에는,
+	"flashSync"를 사용할 수 있습니다.
+
+
+■ Usage #1 - Adding a "reducer" to a component
+
+  ○ Call "useReducer" at the top level of your component to manage "state" with a "reducer":
+	----------------------------------
+  	"reducer"를 사용하여 "상태"를 관리하려면, 컴포넌트의 최상위 수준에서 "useReducer"를 호출하세요:
+
+
+		import { useReducer } from 'react';
+
+		function reducer(state, action) {
+			// ...
+		}
+
+		function MyComponent() {
+			const [state, dispatch] = useReducer(reducer, { age: 42 });
+			// ...
+
+  ○ "useReducer" returns an array with exactly two items:
+		1. The current state of this state variable, initially set to the initial state you provided.
+		2. The "dispatch" function that lets you change it in response to interaction.
+	----------------------------------
+  	"useReducer"는 정확히 두 개의 항목이 포함된 배열을 반환합니다:
+		1. 이 상태변수(state variable)의 현재 상태는, 처음에 사용자가 제공한 초기 상태로 설정됩니다.
+		2. 상호작용에 대한 응답으로, 이를 변경할 수 있는 "dispatch(action)" 함수.
+
+  ○ To update what’s on the screen, 
+  	call "dispatch" with an object representing what the user did, called an "action" :
+	----------------------------------
+  	화면에 표시된 내용을 업데이트하려면, 
+    사용자가 수행한 작업을 나타내는 "action"이라는 개체를 사용하여 "dispatch(action)"를 호출합니다.
+
+		function handleClick() {
+			dispatch({ type: 'incremented_age' });
+		}
+
+  ○ React will pass the current state and the action to your "reducer" function.
+    Your "reducer" will calculate and return the next state.
+    React will store that next state, render your component with it, and update the UI.
+	----------------------------------
+  	React는 현재상태와 액션(action)을 "reducer" 함수에 전달합니다.
+    "reducer"는 다음상태를 계산하고 반환합니다.
+	React는 다음상태를 저장하고, 이를 사용하여 컴포넌트를 렌더링하고, UI를 업데이트합니다.
+
+  ○ "useReducer" is very similar to "useState", 
+    but it lets you move the state update logic from event handlers into a single function outside of your component.
+	----------------------------------
+  	"useReducer"는 "useState"와 매우 유사하지만, 
+    상태 업데이트 로직을, 이벤트 핸들러에서 컴포넌트 외부의 단일함수로 이동할 수 있습니다.
+
+  ○ Example: default app, "src/App.tsx"
+
+		import { useReducer } from 'react';
+
+		function reducer(state, action) {									<--- ***
+			if (action.type === 'incremented_age') {
+				return {
+					age: state.age + 1
+				};
+			}
+			throw Error('Unknown action.');
+		}
+
+		export default function Counter() {
+			const [state, dispatch] = useReducer(reducer, { age: 42 });		<--- ***
+
+			return (											*action*
+				<>									  --------------------------
+					<button onClick={() => { dispatch({ type: 'incremented_age' }) }}>
+						Increment age
+					</button>
+
+					<p>Hello! You are {state.age}.</p>
+				</>
+			);
+		}
+
+
+■ Usage #2 - Writing the reducer function
+
+  ○ A "reducer" function is declared like this:
+						  ①      ②
+						 -----  ------
+		function reducer(state, action) {
+			// ...
+		}
+
+  ○ Then you need to fill in the code that will calculate and return the next state.
+    By convention, it is common to write it as a "switch" statement. 
+	For each case in the switch, calculate and return some next state.
+	----------------------------------
+  	그런 다음, 다음 상태를 계산하고 반환하는 코드를 작성해야 합니다.
+    관례적으로는, switch 문으로 작성하는 것이 일반적입니다.
+	switch의 각 경우에 대해, 다음 상태를 계산하고 반환합니다.
+
+						  ①      ②
+						 -----  ------
+		function reducer(state, action) {			<--- ***
+			switch (action.type) {					<--- ***
+				case 'incremented_age': {
+					return {
+						name: state.name,
+						age : state.age + 1
+					};
+				}
+				case 'changed_name': {
+					return {
+						name: action.nextName,
+						age : state.age
+					};
+				}
+			}
+
+			throw Error('Unknown action: ' + action.type);
+		}
+
+  ○ Actions can have any shape.
+    By convention, it’s common to pass objects with a "type" property identifying the action.
+	It should include the minimal necessary information that the "reducer" needs to compute the next state.
+	----------------------------------
+  	액션의 형태는 다양할 수 있습니다.
+    관례적으로, 액션을 식별하는 유형(type) 속성을 사용하여, 객체를 전달하는 것이 일반적입니다.
+    "reducer"가 다음 상태를 계산하는 데 필요한 최소한의 필수 정보를 포함해야 합니다.
+
+		function Form() {
+			const [state, dispatch] = useReducer(reducer, { name: 'Taylor', age: 42 });
+		
+			function handleButtonClick() {
+								  *action*
+						 --------------------------
+				dispatch({ type: 'incremented_age' });		
+			}
+
+			function handleInputChange(e) {
+								  			*action*
+						 --------------------------------------------------
+				dispatch({ type: 'changed_name', nextName: e.target.value });
+			}
+			// ...
+
+  ○ The "action type" names are local to your component.
+    Each action describes a single interaction, even if that leads to multiple changes in data.
+	The shape of the "state" is arbitrary, but usually it’ll be an "object" or an "array".
+	----------------------------------
+ 	액션(action) 유형(type) 이름은 컴포넌트에 대해 로컬입니다.
+	각 작업은, 데이터에 여러 변경사항이 발생하더라도, 단일상호작용을 설명합니다.
+	"상태"의 형태는 임의적이지만, 일반적으로 객체 또는 배열이 됩니다.
+
+
+■ Pitfall (함정)
+
+  ○ State is read-only.
+  	Don’t modify any objects or arrays in state:
+	----------------------------------
+	상태는 읽기전용입니다.
+	상태의 객체나 배열을 수정하지 마세요:
+						  ***
+				 ---------------------
+		function reducer(state, action) {
+			switch (action.type) {											<--- ***
+				case 'incremented_age': {
+					// 🚩 Don't mutate an object in state like this:	   <--- ***
+					state.age = state.age + 1;
+					return state;
+				}
+
+  ○ Instead, always return new objects from your "reducer" :
+	----------------------------------
+ 	대신, 항상 "reducer" 에서 새 객체를 반환하세요 :
+						  ***
+				 ---------------------
+		function reducer(state, action) {
+			switch (action.type) {											<--- ***
+				case 'incremented_age': {									
+					// ✅ Instead, return a new object					  <--- ***
+					return {
+						...state,
+						age: state.age + 1
+					};
+				}
+
+
+■ Example:	default app, "src/App.tsx"
+
+		import { useReducer } from 'react';
+
+
+						***
+				 ---------------------
+		function reducer(state, action) {
+			switch (action.type) {				<--- ***
+				case 'incremented_age': {
+					return {
+						name: state.name,
+						age	: state.age + 1
+					};
+				}
+				case 'changed_name': {
+					return {
+						name: action.nextName,
+						age	: state.age
+					};
+				}
+			}
+
+			throw Error('Unknown action: ' + action.type);
+		}
+
+		const initialState = { name: 'Taylor', age: 42 };
+
+		export default
+		function Form() {
+			const [state, dispatch] = useReducer(reducer, initialState);
+
+			function handleButtonClick() {
+				dispatch({ type: 'incremented_age' });
+			}
+
+			function handleInputChange(e) {
+				dispatch({ type: 'changed_name', nextName: e.target.value }); 
+			}
+
+			return (
+				<>
+					<input value={state.name} onChange={handleInputChange} />
+					<button onClick={handleButtonClick}>Increment age</button>
+					<p>Hello, {state.name}. You are {state.age}.</p>
+				</>
+			);
+		}
+
+
+---------------------------------
+12. useRef
+---------------------------------
+
+■ The "useRef" is a React Hook that lets you reference a value that’s not needed for rendering.
+	(렌더링에 필요하지 않은 값을 참조할 수 있게 해주는 React Hook)
+
+	const ref = useRef(initialValue)
+
+
+	import { useRef } from 'react';
+
+	function MyComponent() {
+		const intervalRef = useRef(0);
+		const inputRef = useRef(null);
+
+		// ...
+
+■ Reference
+
+	useRef(initialValue)
+
+	Call "useRef" at the top level of your component to declare a "ref".
+	"ref"를 선언하려면, 컴포넌트의 최상위 수준에서 "useRef"를 호출하세요:
+
+
+  ○ Parameters
+
+	● initialValue
+	  - The value you want the "ref" object’s "current" property to be initially.
+	  - It can be a value of any type. 
+	  - This argument is ignored after the initial render.
+	  ----------------------------------
+	  - "ref" 객체의 "current" 속성을 초기에 지정하려는 값입니다.
+	  - 모든 유형의 값이 될 수 있습니다.
+	  - 이 인자는 초기 렌더링 후에는 무시됩니다.
+
+
+  ○ Returns 
+
+	● "useRef" returns an object with a "single property" :
+	  - current: Initially, it’s set to the "initialValue" you have passed.
+	  - You can later set it to something else.
+	  - If you pass the "ref" object to React as a "ref" attribute to a "JSX" node, 
+	    React will set its "current" property.
+
+	  ----------------------------------
+	  "useRef"는 "단일속성"을 가진 객체를 반환합니다 :
+	  - 현재: 처음에는 전달한 "initialValue"로 설정됩니다.
+  	  - 나중에 다른 것으로 설정할 수 있습니다.
+	  - "ref" 객체를 "JSX" 노드에 대한 "ref" 속성으로 React에 전달하면,
+	    React는 "current" 속성을 설정합니다.
+
+	● On the "next" renders, "useRef" will return the "same" object.
+	  "다음" 렌더링에서, "useRef"는 "동일한" 개체를 반환합니다.
+
+
+  ○ Caveats 
+  
+	● You can mutate the "ref.current" property. 
+	  Unlike "state", it is mutable.
+	  However, if it holds an object that is used for rendering (for example, a piece of your state), 
+	  then you shouldn’t mutate that object.
+	  ----------------------------------
+	  "ref.current" 속성을 변경할 수 있습니다.
+	  "상태"와 달리, 변경가능 합니다.
+	  그러나 렌더링에 사용되는 개체(예: 상태의 일부)를 보유하는 경우, 해당 개체를 변경하면 안 됩니다.
+
+	● When you change the "ref.current" property, React does *NOT* re-render your component.
+	  React is *NOT* aware of when you change it because a "ref" is a plain JavaScript object.
+	  ----------------------------------
+	  "ref.current" 속성을 변경하면, React는 컴포넌트를 다시 렌더링하지 않습니다.
+	  "ref"는 일반 JavaScript 객체이기 때문에, React는 언제 변경되는지 인식하지 못합니다.
+
+	● Do *NOT* write or read "ref.current" during rendering, except for initialization.
+	  This makes your component’s behavior unpredictable.
+	  ----------------------------------
+	  초기화를 제외하고, 렌더링 중에 "ref.current"를 쓰거나 읽지 *않습니다*.
+	  이로인해, 컴포넌트의 동작을 예측할 수 없게 됩니다.
+
+	● In Strict Mode, React will call your component function *Twice* in order to help you find accidental impurities.
+	  This is development-only behavior and does *NOT* affect production.
+	  Each "ref" object will be created *Twice*, but one of the versions will be discarded.
+	  If your component function is pure (as it should be), this should *NOT* affect the behavior.
+	  ----------------------------------
+	  Strict 모드에서 React는, 우발적인 불순물을 찾는데 도움을 주기위해, 컴포넌트 함수를 *두번* 호출합니다.
+	  이는 개발전용 동작이며, 프로덕션에는 *아닙니다*.
+	  각 "ref" 개체는 *두번* 생성되지만, 버전 중 하나는 삭제됩니다.
+	  컴포넌트 함수가 순수하다면(되어야 하는대로), 동작에 영향을 주지 않습니다.
+
+■ Usage #1	- Referencing a value with a "ref"
+
+  ○ Call "useRef" at the top level of your component to declare one or more "refs" :
+	----------------------------------
+    하나 이상의 "refs"를 선언하려면, 컴포넌트의 최상위 수준에서 "useRef"를 호출하세요 :
+
+		import { useRef } from 'react';				<--- ***
+
+		function Stopwatch() {
+			const intervalRef = useRef(0);			<--- ***
+
+			// ...
+
+  ○ "useRef" returns a "ref" object with a single "current" property initially set to the initial value you provided.
+	----------------------------------
+	"useRef"는 처음에 사용자가 제공한 초기값으로 설정된, 단일 "current" 속성이 있는 "ref" 개체를 반환합니다.
+
+  ○ On the next renders, "useRef" will return the "same" object.
+  	You can change its "current" property to store information and read it later.
+	This might remind you of "state", but there is an important difference.
+	----------------------------------
+	다음 렌더링에서, "useRef"는 "동일한" 개체를 반환합니다.
+	정보를 저장하고 나중에 읽을 수 있도록, "현재" 속성을 변경할 수 있습니다.
+	이는 "상태"를 생각나게 할 수 있지만, 중요한 차이점이 있습니다.
+
+  ○ Changing a "ref" does *NOT* trigger a "re-render".
+	This means "refs" are perfect for storing information that doesn’t affect the visual output of your component.
+  	For example, if you need to store an interval ID and retrieve it later, you can put it in a "ref". 
+	----------------------------------
+	"ref"를 변경해도 "재렌더링"이 트리거되지 *않습니다*.
+	이는 "refs"가, 컴포넌트의 시각적 출력에 영향을 주지않는 정보를 저장하는데, 적합하다는 것을 의미합니다.
+	예를 들어, interval ID를 저장하고 나중에 검색해야 하는 경우, 이를 "ref"에 넣을 수 있습니다.
+
+  	To update the value inside the "ref", you need to "manually" change its "current" property:
+	----------------------------------
+	"ref" 내부의 값을 업데이트하려면, 해당 "current" 속성을 "수동으로" 변경해야 합니다 :
+
+		function handleStartClick() {
+			const intervalId = setInterval(() => {	<--- ***
+				// ...
+			}, 1000);
+
+			intervalRef.current = intervalId;		<--- ***
+		}
+
+  ○ Later, you can read that interval ID from the "ref" so that you can call "clear" that interval:
+	----------------------------------
+	나중에, 해당 interval 을 "지우기" 호출할 수 있도록, "ref"에서 해당 interval ID를 읽을 수 있습니다.
+
+		function handleStopClick() {
+			const intervalId = intervalRef.current;	<--- ***
+			clearInterval(intervalId);				<--- ***
+		}
+
+  ○ By using a "ref", you ensure that:
+	----------------------------------
+	"ref"를 사용하면, 다음을 확인할 수 있습니다:
+
+	● You can store information between "re-renders"
+	  (unlike regular variables, which reset on "every render").
+	  ----------------------------------
+	  "재렌더링" 할 때마다, 정보를 저장할 수 있습니다.
+	  ("모든 렌더링"에서 재설정되는 일반변수와는 다름)
+
+	● Changing it does *NOT* trigger a "re-render"
+	  (unlike "state variables", which trigger a "re-render").
+	  ----------------------------------
+	  이를 변경해도, "재렌더링"이 트리거 되지 *않습니다*.
+	  ("재렌더링"을 트리거하는 "상태변수"와는 다름)
+
+	● The information is local to "each" copy of your component
+	  (unlike the variables outside, which are shared).
+	  ----------------------------------
+	  정보는, 컴포넌트의 "각" 복사본에 대해, 로컬입니다
+	  (공유되는 외부변수와는 달리)
+
+  ○ Changing a "ref" does *NOT* trigger a "re-render",
+    so "refs" are *NOT* appropriate for storing information you want to display on the screen.
+  	Use "state" for that instead.
+	----------------------------------
+	"ref"를 변경해도, "재렌더링"을 트리거 하지 *아닙니다*.
+	따라서, "refs"는 화면에 표시하려는 정보를 저장하는 데, 적절하지 *않습니다*.
+	대신 "상태"를 사용하세요.
+
+  ○ If you show "{ref.current}" in the JSX, the number won’t update on click.
+    This is because setting "ref.current" does *NOT* trigger a "re-render".
+	Information that’s used for rendering should be "state" instead.
+	----------------------------------
+	JSX에 "{ref.current}"를 표시하면, 클릭 시 숫자가 업데이트 되지 않습니다.
+	이는 "ref.current"를 설정해도 "재렌더링"이 트리거되지 *않기* 때문입니다.
+	대신 렌더링에 사용되는 정보는 "상태" 여야 합니다.
+
+
+  ○ Pitfall (함정)
+	
+	Do not write or read "ref.current" during rendering.
+	----------------------------------
+	렌더링 중에는 "ref.current"를 쓰거나 읽지 마십시오.
+
+	React expects that the body of your component behaves like a pure function:
+	----------------------------------
+	React는 컴포넌트의 본문이, 순수한 함수처럼 동작할 것으로 기대합니다.
+
+	● If the inputs ("props", "state", and "context") are the "same", it should return exactly the "same" JSX.
+	  ----------------------------------
+	  입력("props", "state" 및 "context")이 "동일"하면, 정확히 "동일한" JSX를 반환해야 합니다.
+
+	● Calling it in a different order or with different arguments should *NOT* affect the results of other calls.
+	  ----------------------------------
+	  다른 순서나 다른 인자로 호출하면, 다른 호출의 결과에 *영향을 주지* 않습니다.
+
+  	Reading or writing a "ref" during "rendering" breaks these expectations:
+	----------------------------------
+	"렌더링" 중에 "ref"를 읽거나 쓰는 것은, 이러한 기대를 깨뜨립니다.
+
+		function MyComponent() {
+			// ...
+
+			// 🚩 Don't write a "ref" during "rendering"
+			myRef.current = 123;
+
+			// ...
+
+			// 🚩 Don't read a "ref" during "rendering"
+			return <h1>{myOtherRef.current}</h1>;
+		}
+
+	You can read or write "refs" from "event handlers" or "effects" instead:
+	----------------------------------
+	대신, "이벤트 핸들러"나 "효과"에서, "refs"를 읽거나 쓸 수 있습니다.
+
+		function MyComponent() {
+			// ...
+
+			useEffect(() => {
+				// ✅ You can read or write "refs" in "effects"
+				myRef.current = 123;
+			});
+
+			// ...
+
+			function handleClick() {
+				// ✅ You can read or write "refs" in "event handlers"
+				doSomething(myOtherRef.current);
+			}
+
+			// ...
+		}
+
+	If you have to read or write something during "rendering", use "state" instead.
+	When you break these rules, your component might still work, 
+	but most of the newer features we’re adding to React will rely on these expectations.
+	----------------------------------
+	"렌더링" 중에 무언가를 읽거나 써야 한다면, 대신 "상태"를 사용하세요.
+	이러한 규칙을 어기면, 컴포넌트가 계속 작동할 수 있지만,
+	React에 추가하는 대부분의 최신 기능은 이러한 기대에 의존합니다.
+
+■ Usage #2	- Manipulating the DOM with a "ref"
+
+  ○ It’s particularly common to use a "ref" to manipulate the "DOM".
+  	React has built-in support for this.
+
+	First, declare a "ref" object with an initial value of "null" :
+
+		import { useRef } from 'react';
+
+		function MyComponent() {
+			const inputRef = useRef(null);			<--- ***
+			// ...
+
+  ○ Then pass your "ref" object as the "ref" attribute 
+  	to the "JSX" of the "DOM" node you want to manipulate:
+
+		// ...
+
+  		return <input ref={inputRef} />;			<--- ***
+
+  ○ After React creates the "DOM" node and puts it on the screen,
+  	React will set the "current" property of your "ref" object to that "DOM" node.
+	----------------------------------
+	React가 "DOM" 노드를 생성하여 화면에 표시한 후, 
+	React는 "ref" 객체의 "current" 속성을 해당 "DOM" 노드로 설정합니다.
+
+	Now you can access the <input>’s "DOM" node and call methods like "focus()" :
+	----------------------------------
+	이제 <input>의 "DOM" 노드에 액세스하고, "focus()"와 같은 메서드를 호출할 수 있습니다 :
+
+		function handleClick() {
+			inputRef.current.focus();				<--- ***
+		}
+
+  ○ React will set the "current" property back to "null" when the node is removed from the screen.
+	----------------------------------
+    React는, 노드가 화면에서 제거되면, "current" 속성을 다시 "null"로 설정합니다.
+
+
+---------------------------------
+13. useState
+---------------------------------
+
+■ The "useState" is a React Hook that lets you add a "state variable" to your component.
+  (당신의 Component 에 상태 변수(state variable)를 추가할 수 있게 해주는 React Hook)
+
+		const [state, setState] = useState(initialState)
+
+
+■ Reference #1	- useState(initialState)
+
+  ○ Call "useState" at the top level of your component to declare a "state variable":
+	(상태 변수를 선언하려면, 컴포넌트의 최상위 수준에서 useState를 호출하세요.)
+
+		import { useState } from 'react';
+
+		function MyComponent() {
+			const [age, setAge] = useState(28);
+			const [name, setName] = useState('Taylor');
+			const [todos, setTodos] = useState(() => createTodos());
+
+			// ...
+
+  ○ The convention is to name "state variables" like "[something, setSomething]" using "array destructuring".
+    (관례는 "배열 분해"를 사용하여, "[something, setSomething]"과 같은, "상태 변수"의 이름을 지정하는 것입니다.)
+
+
+  ○ Parameters
+
+	① initialState: 
+	
+	  - The value you want the state to be initially.
+	  - It can be a value of any type, but there is a special behavior for functions.
+	  - This argument is ignored after the initial render.
+	  - If you pass a "function" as "initialState", it will be treated as an "initializer" function.
+	    It should be pure, should take no arguments, and should return a value of any type.
+	    React will call your "initializer" function when initializing the component, and store its return value as the initial state.
+
+		------------------------------------
+
+	  - 원하는 처음 상태의 값입니다.
+	  - 모든 유형의 값이 될 수 있지만, 함수에는 특별한 동작이 있습니다.
+	  - 이 인자는, 초기 렌더링 후에는, 무시됩니다.
+	  - 함수를 initialState로 전달하면, 초기화 함수로 처리됩니다.
+	    순수해야 하고, 인자를 취하지 않아야 하며, 모든 유형의 값을 반환해야 합니다.
+		React는, 컴포넌트를 초기화할 때, 초기화 함수를 호출하고 그 반환 값을 초기상태(initial state)로 저장합니다.
+
+
+  ○ Returns 
+
+	"useState" returns an "array" with exactly two values:
+
+		① The current state. 
+			During the first render, it will match the "initialState" you have passed.
+		② The "set" function that lets you update the state to a different value and trigger a "re-render".
+
+		------------------------------------
+
+	"useState"는 정확히 두 개의 값이 있는 "배열"을 반환합니다:
+
+		① 현재 상태입니다. 첫 번째 렌더링 중에는, 전달한 "initialState"와 일치합니다.
+		② 상태를 다른 값으로 업데이트하고, "재렌더링"을 "트리거" 할 수 있는 "set" 함수.
+
+
+  ○ Caveats - (특정 절차를 따르라는) 통고[경고]
+
+	① "useState" is a Hook, so you can only call it at the top level of your component or your own Hooks.
+
+	   	- You can’t call it inside "loops" or "conditions".
+	   	- If you need that, extract a new component and move the "state" into it.
+
+	② In Strict Mode, React will call your "initializer" function *Twice* in order to help you find accidental impurities.
+
+	   	- This is development-only behavior and does not affect production.
+	   	- If your "initializer" function is pure (as it should be), this should not affect the behavior.
+	   	- The result from one of the calls will be ignored.
+
+		------------------------------------
+
+	① useState는 Hook이므로, 컴포넌트의 최상위 수준이나 자체 Hook에서만 호출할 수 있습니다.
+	
+	   	- 루프나 조건 내에서는 호출할 수 없습니다.
+	   	- 필요한 경우 새 컴포넌트를 추출하고, 상태를 해당 컴포넌트로 옮깁니다.
+
+	② Strict 모드에서, React는 우발적인 불순물을 찾는데 도움을 주기 위해, 초기화 함수를 *두번* 호출합니다.
+	
+		- 이는 개발 전용 동작이며, 프로덕션에는 영향을 주지 않습니다.
+		- 초기화 함수가 순수(순수해야 함)인 경우, 이는 동작에 영향을 주지 않습니다.
+		- 호출 중 하나의 결과는 무시됩니다.
+	
+
+■ Reference #2	- set functions, like setSomething(nextState)
+
+  ○ The set function returned by "useState" lets you update the "state" to a different value and trigger a "re-render".
+  	You can pass the next state directly, or a function that calculates it from the previous state:
+
+	------------------------------------
+
+	"useState"에서 반환된 set 함수를 사용하면, 상태("state")를 다른 값으로 업데이트하고 재렌더링("re-render")을 트리거할 수 있습니다.
+
+	다음 상태(state)를 직접 전달하거나 이전 상태(previous state)에서 이를 계산하는 함수를 전달할 수 있습니다:
+
+		const [name, setName] = useState('Edward');				<--- ***
+
+		function handleClick() {
+			setName('Taylor');									<--- ***
+			setAge(a => a + 1);
+
+			// ...
+
+
+  ○ Parameters
+
+	① nextState: The value that you want the "state" to be. 
+
+		- It can be a "value" of any type, but there is a special behavior for functions.
+		- If you pass a "function" as nextState, it will be treated as an "updater" function.
+		- It must be pure, should take the "pending state" as its only argument, and should return the "next state".
+		- React will put your "updater" function in a "queue" and "re-render" your component.
+		- During the next render, React will calculate the next state by applying all of the "queued updaters" to the "previous state".
+
+		------------------------------------
+
+		"상태"에 원하는 값입니다.
+
+		- 모든 유형의 "값"이 될 수 있지만, 함수에는 특별한 동작이 있습니다.
+		- "함수"를 nextState로 전달하면, "업데이터" 함수로 처리됩니다.
+		- 순수해야 하며, "보류 상태"를 유일한 인자로 가져와야 하며, "다음 상태"를 반환해야 합니다.
+		- React는 "업데이터" 함수를 "대기열"에 넣고, 컴포넌트를 "다시 렌더링"합니다.
+		- 다음 렌더링 동안, React는 모든 "대기 중인 업데이터"을 "이전 상태"에 적용하여, 다음 상태를 계산합니다.
+
+		------------------------------------
+
+
+  ○ Returns
+
+	- set functions do not have a return value.
+	  (set 함수에는 반환 값이 없습니다.)
+
+
+  ○ Caveats - (특정 절차를 따르라는) 통고[경고]
+
+	- The "set" function *ONLY* updates the "state variable" for the next render.
+	  If you read the "state variable" after calling the "set" function, you will still get the old value that was on the screen before your call.
+
+	  -------------------------
+
+	  "set" 함수는, *오직* 다음 렌더링을 위해, "상태 변수"를 업데이트합니다. 
+	  "set" 함수를 호출한 후 "상태 변수"를 읽으면, 호출하기 전에 화면에 있었던 이전 값을 계속 얻을 수 있습니다.
+
+	- If the new value you provide is identical to the current state, as determined by an "Object.is" comparison,
+	  React will skip re-rendering the component and its children. 
+	  This is an optimization. 
+	  Although in some cases React may still need to call your component before skipping the children, it shouldn’t affect your code.
+
+	  -------------------------
+
+	  새롭게 제공한 값이, "Object.is" 비교에 의해 결정된, 현재 상태와 동일하면,
+	  React는 컴포넌트와 그 하위요소(children)를 다시 렌더링하는 것을 건너뜁니다.
+	  
+	  이것은 최적화입니다.
+	  
+	  경우에 따라 React는, 하위요소(컴포넌트)를 건너뛰기 전에, 컴포넌트를 호출해야 할 수도 있지만, 
+	  이것이 코드에 영향을 주어서는 안 됩니다.
+
+	- React batches state updates.
+
+	  It updates the screen after all the event handlers have run and have called their set functions.
+	  This prevents multiple re-renders during a single event.
+
+	  In the rare case that you need to force React to update the screen earlier,
+	  for example to access the DOM, you can use "flushSync".
+
+	  -------------------------
+
+	  React는 상태 업데이트를 일괄처리 합니다.
+
+	  모든 이벤트 핸들러가 실행되고 "set" 함수를 호출한 후에 화면을 업데이트합니다.
+	  이렇게 하면, 단일 이벤트 중에, 여러 번 다시 렌더링되는 것을, 방지할 수 있습니다.
+
+	  예를들어, DOM에 액세스하기 위해, React가 화면을 더 일찍 업데이트하도록 강제해야 하는 드문 경우에는,
+	  "flushSync"를 사용할 수 있습니다.
+
+	- Calling the set function during rendering is only allowed from within the currently rendering component.
+	  React will discard its output and immediately attempt to render it again with the new state.
+	  This pattern is rarely needed, but you can use it to store information from the previous renders.
+
+	  -------------------------
+
+	  렌더링 중에, set 함수를 호출하는 것은, 현재 렌더링 컴포넌트 내에서만 허용됩니다.
+	  React는 출력을 삭제하고, 즉시 새 상태로 다시 렌더링을 시도합니다.
+	  이 패턴은 거의 필요하지 않지만, 이전 렌더링의 정보를 저장하는 데 사용할 수 있습니다.
+
+	- In Strict Mode, React will call your updater function twice in order to help you find accidental impurities.
+	  This is development-only behavior and does not affect production.
+	  If your updater function is pure (as it should be), this should not affect the behavior.
+	  The result from one of the calls will be ignored. 
+
+	  -------------------------
+
+	  Strict 모드에서, React는 우발적인 불순물을 찾는 데 도움을 주기 위해, 업데이터 함수를 두 번 호출합니다.
+	  이는 개발전용 동작이며, 프로덕션에는 영향을 주지 않습니다.
+	  업데이터 함수가 순수하다면(되어야 하는 대로), 동작에 영향을 주지 않습니다. \
+	  호출 중 하나의 결과는 무시됩니다.
+
+
+■ Usage #1	- Adding "state" to a component
+
+  ○ Call "useState" at the top level of your component to declare "one" or "more" state variables:
+	------------------------------------
+	컴포넌트의 최상위 수준에서 "useState"를 호출하여, "하나" 또는 "더 많은" 상태변수를 선언합니다.
+
+
+		import { useState } from 'react';					<--- ***
+
+		function MyComponent() {
+			const [age, setAge] = useState(42);				<--- ***
+			const [name, setName] = useState('Taylor');		<--- ***
+
+			// ...
+
+  ○ The convention is to name "state variables" like "[something, setSomething]" using array destructuring.
+	------------------------------------
+	규칙은 "배열분해"를 사용하여, "[something, setSomething]"과 같은, "상태 변수"의 이름을 지정하는 것입니다.
+
+
+  ○ "useState" returns an array with exactly two items:
+	① The current state of this state variable, initially set to the "initial state" you provided.
+	② The "set" function that lets you change it to any other value in response to interaction.
+
+	------------------------------------
+
+	"useState"는 정확히 두 개의 항목이 포함된 배열을 반환합니다:
+	① 이 상태변수의 현재상태는, 처음에 사용자가 제공한 "초기상태"로 설정됩니다.
+	② 상호작용에 따라, 다른 값으로 변경할 수 있는 "set" 함수.
+
+
+  ○ To update what’s on the screen, call the "set" function with some next state:
+	------------------------------------
+	화면의 내용을 업데이트하려면, 다음 상태로 "set" 함수를 호출하세요.
+
+		function handleClick() {							<--- ***
+			setName('Robin');								<--- ***
+		}
+
+  ○ React will store the next state, render your component again with the new values, and update the UI.
+	------------------------------------
+	React는 다음 상태를 저장하고, 새 값으로 컴포넌트를 다시 렌더링하고, UI를 업데이트합니다.
+
+
+  ○ Pitfall (함정)
+
+	- Calling the set function does not change the current state in the already executing code:
+	  ------------------------------------
+	  set 함수를 호출해도, 이미 실행중인 코드의 현재상태는 변경되지 않습니다:
+
+
+		function handleClick() {							<--- ***
+			setName('Robin');								<--- ***
+			console.log(name); // Still "Taylor"!			<--- ***
+		}
+  
+	- It only affects what "useState" will return starting from the next render.
+	  ------------------------------------
+	  이는, 다음 렌더링부터, "useState"가 반환할 내용에만 영향을 미칩니다.
+
+
+■ Usage #2	- Updating "state" based on the "previous" state
+
+  ○ Suppose the age is 42.
+  	This handler calls setAge(age + 1) three times:
+	------------------------------------
+	나이가 42세라고 가정합니다.
+	이 핸들러는 setAge(age + 1)을 세 번 호출합니다:
+
+
+		function handleClick() {
+			setAge(age + 1); 		// setAge(42 + 1)			<--- ***
+			setAge(age + 1); 		// setAge(42 + 1)			<--- ***
+			setAge(age + 1); 		// setAge(42 + 1)			<--- ***
+		}
+
+
+  ○ However, after one click, age will only be 43 rather than 45!.
+    This is because calling the set function does *NOT* update the age "state variable" in the already running code.
+	------------------------------------
+	그러나, 한 번의 클릭 후에는, 나이가 45세가 아닌 43세로 표시됩니다!.
+	이는 set 함수를 호출해도, "이미 실행 중인" 코드의 연령 "상태변수"가 업데이트되지 *않기* 때문입니다.
+	
+	So each setAge(age + 1) call becomes setAge(43).
+	------------------------------------
+	따라서, 각 setAge(age + 1) 호출은, setAge(43)이 됩니다.
+
+
+  ○ To solve this problem, you may pass an "updater" function to "setAge" instead of the "next state":
+	------------------------------------
+	이 문제를 해결하려면, "다음상태" 대신, "updater" 함수를 "setAge"에 전달할 수 있습니다.
+
+
+		function handleClick() {
+			setAge(a => a + 1); 	// setAge(42 => 43)			<--- ***
+			setAge(a => a + 1); 	// setAge(43 => 44)			<--- ***
+			setAge(a => a + 1); 	// setAge(44 => 45)			<--- ***
+		}
+
+
+  ○ Here, "a => a + 1" is your "updater" function.
+  	It takes the "pending state" and calculates the "next state" from it.
+	------------------------------------
+	여기서, "a => a + 1"은 "업데이터" 함수 입니다.
+	"보류상태"(pending state)를 가져와서, "다음상태"(next state)를 계산합니다.
+
+
+  ○ React puts your "updater" functions in a "queue".
+  	Then, during the "next" render, it will call them in the "same" order:
+	------------------------------------
+	React는 "업데이트" 기능을 "대기열"에 넣습니다.
+	그런 다음, "다음" 렌더링 중에, "동일한" 순서로 호출합니다.
+
+	"a => a + 1" will receive 42 as the "pending state" and return 43 as the "next state".
+	"a => a + 1" will receive 43 as the "pending state" and return 44 as the "next state".
+	"a => a + 1" will receive 44 as the "pending state" and return 45 as the "next state".
+
+
+  ○ There are *No* other queued updates, so React will store 45 as the "current state" in the end.
+	------------------------------------
+	대기 중인 다른 업데이트가 *없음* 으로, React는 결국 45를 "현재상태"(current state)로 저장합니다.
+
+
+  ○ By convention, it’s common to name the pending state argument for the first letter of the state variable name, like a for age.
+    However, you may also call it like prevAge or something else that you find clearer.
+	------------------------------------
+	관례적으로, 연령과 같이 상태변수 이름의 첫글자에 대해, 보류상태 인자의 이름을 지정하는 것이 일반적입니다.
+	그러나 prevAge 또는 더 명확하다고 생각되는 다른 이름으로 부를 수도 있습니다.
+
+
+  ○ React may call your "updaters" *Twice* in development to verify that they are "pure".
+	------------------------------------
+	React는 개발중에 "순수"한 지 확인하기 위해, "업데이터"를 *두번* 호출할 수 있습니다.
+
+
+  ○ The difference between passing an updater and passing the next state directly:
+	------------------------------------
+	"업데이트 프로그램"을 "전달"하는 것과 "다음상태"를 "직접 전달"하는 것의 차이점은 다음과 같습니다.
+
+	① Example 1 of 2: Passing the "updater" function
+	  - This example passes the "updater" function, so the “+3” button works :
+
+
+		import { useState } from 'react';				<--- ***
+
+		export default function Counter() {
+			const [age, setAge] = useState(42);			<--- ***
+
+			function increment() {						<--- ***
+				setAge(a => a + 1);						<--- ***
+			}
+
+			return (
+				<>
+					<h1>Your age: {age}</h1>
+
+					<button onClick={() => {			<--- ***
+						increment();					<--- ***
+						increment();					<--- ***
+						increment();					<--- ***
+					}}>+3</button>
+
+					<button onClick={() => {			<--- ***
+						increment();					<--- ***
+					}}>+1</button>
+				</>
+			);
+		}
+
+
+	② Example 2 of 2: Passing the "next state directly" 
+	  - This example does not pass the updater function, so the “+3” button doesn’t work as intended :
+
+
+		import { useState } from 'react';				<--- ***
+
+		export default function Counter() {
+			const [age, setAge] = useState(42);			<--- ***
+
+			function increment() {						<--- ***
+				setAge(age + 1);						<--- ***
+			}
+
+			return (
+				<>
+					<h1>Your age: {age}</h1>
+					
+					<button onClick={() => {			<--- ***
+						increment();					<--- ***
+						increment();					<--- ***
+						increment();					<--- ***
+					}}>+3</button>
+					<button onClick={() => {			<--- ***
+						increment();					<--- ***
+					}}>+1</button>
+				</>
+			);
+		}
+
+
+■ Usage #3	- Updating "objects" and "arrays" in "state"
+
+  ○ You can put objects and arrays into state.
+  	In React, state is considered read-only, so you should replace it rather than mutate your existing objects.
+
+  	For example, if you have a form object in state, don’t mutate it:
+	------------------------------------
+	객체와 배열을 상태로 만들 수 있습니다.
+	React에서, 상태는 읽기 전용으로 간주되므로 기존 객체를 변경하기보다는 상태를 교체해야 합니다.
+	
+	예를들어, 상태에 있는 양식 객체가 있는 경우, 이를 변경하지 마세요:
+
+
+		// 🚩 Don't mutate an object in state like this:
+		form.firstName = 'Taylor';
+
+
+  ○ Instead, replace the whole object by creating a new one:
+	------------------------------------
+	대신, 새 객체를 생성하여, 전체 객체를 교체하세요:
+
+
+		// ✅ Replace state with a new object
+		setForm({
+			...form,
+			firstName: 'Taylor'
+		});
+
+
+---------------------------------
+14. useSyncExternalStore
+---------------------------------
+
+■ The "useSyncExternalStore" is a React Hook that lets you subscribe to an external store.
+	(외부 저장소를 구독할 수 있게 해주는 React Hook)
+
+	const snapshot = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot?)
+
+
+■ Example
+
+	import { useSyncExternalStore } from 'react';
+	import { todosStore } from './todoStore.js';
+
+	function TodosApp() {
+		const todos = useSyncExternalStore(todosStore.subscribe, todosStore.getSnapshot);
+		// ...
+	}
+
+
+---------------------------------
+15. useTransition
+---------------------------------
+
+■ The "useTransition" is a React Hook that lets you update the state without blocking the UI.
+	(UI를 차단하지 않고, 상태를 업데이트할 수 있는 React Hook)
+
+	const [isPending, startTransition] = useTransition()
+
+
+■ Example 1
+
+	import { useTransition } from 'react';
+
+	function TabContainer() {
+		const [isPending, startTransition] = useTransition();
+		// ...
+	}
+
+
+■ Example 2
+
+	function TabContainer() {
+		const [isPending, startTransition] = useTransition();
+		const [tab, setTab] = useState('about');
+
+		function selectTab(nextTab) {
+			startTransition(() => {
+			setTab(nextTab);
+			});
+		}
+
+		// ...
+	}
+

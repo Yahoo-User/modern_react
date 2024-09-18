@@ -1,0 +1,406 @@
+*******************************************************
+* 05-2. Using The "Reducer"                    		  *
+*******************************************************
+
+01. The more there are member properties of "App-Level States",
+	The more code to implement "reducer".
+
+	■ The redux provides the "combineReducers" function to reduce complexity of "reducer".		<--- *** 
+
+
+02. Create a React Project.
+		...
+		> npm i redux @reduxjs/toolkit react-redux
+		...
+
+	■ Since React v18 & "react-redux" v8, the "Provider" component provided from "react-redux"
+	  should have definitely "one or more child" components.									<--- ***
+
+
+03. Composing Reducers.
+
+	■ The "combineReducers" function composes several reducers, and makes a new reducer.
+
+	■ The "redux" package provides the "combineReducers" function as follows:
+
+			import {combineReducers} from "redux"
+
+	■ The "combineReducers" function as follows receive "ReducersMapObject" type object as input parameter.
+
+	  ○ Here, Type variable "S" means "state", and corresponds to the "AppState" in this clause:
+
+			export
+			function combineReducers<S>(reducers: ReducersMapObject<S, any>): Reducer<CombinedState<S>>		<--- ***
+
+	■ The "reducers" parameter in "combineReducers" function is a "ReducersMapObject" type object.			<--- ***
+
+	  ○ According to defintion of "ReducersMapObject",
+		The key value of "state" type should be a function of type "Reducer<State[key], Action>"			<--- ***
+		as follows:
+
+			type Action<T extends string = string> = {
+				type: T;
+			};
+
+			export
+			type ReducersMapObject<State = any, A extends Action = Action> = {
+				[ key in keyof State ]: Reducer<State[key], A>
+			}
+
+
+04. Implementing the "Member State" which Composes "App-Level State".
+
+	■ Use "combineReducers" function.
+
+	  ○ Execute the following commands:
+
+			> cd src/store
+			> cp -r copy clock
+			> cp -r copy counter
+			> cp -r copy remoteUser
+			> cp -r copy cards
+
+	  ○ Append the above directories in the "src/store/AppState.ts" source as follows:
+
+			import * as Clock from "./clock"
+			import * as Counter from "./counter"
+			import * as R from "./remoteUser"
+			import * as Cards from "./cards"
+
+			export
+			type AppState = {
+				clock: Clock.State;
+				counter: Counter.State;
+				remoteUser: R.State;
+				cards: Cards.State;
+			}
+
+	  ○ In the above, "AppState" composes four "member states".
+	    Next, Each "reducer" processing each "member state" is needed.
+
+	  ○ Implement "src/store/rootReducer.ts" source as follows:
+
+	  		import {combineReducers} from "redux"
+
+			import * as Clock from "./clock"
+			import * as Counter from "./counter"
+			import * as R from "./remoteUser"
+			import * as Cards from "./cards"
+
+			export
+			const rootReducer = combineReducers({
+				clock: Clock.reducer,
+				counter: Counter.reducer,
+				remoteUser: R.reducer,
+				cards: Cards.reducer
+			})
+
+	  ○ Write code into "src/App.tsx" source.
+
+	  	Please refer to "src/App.tsx".
+
+
+05. Making a Clock
+
+	■ First, declare type of "clock" member state defined in "AppState".
+
+	  ○ Write code into "src/store/clock/types.ts" source as follows:
+
+			import type {Action} from "redux"
+
+			export
+			type State = Date										<--- ***: ⓐ
+
+			export
+			type SetClockAction = Action<"@clock/setClock"> & {		<--- ***: ⓑ
+				payload: State
+			}
+
+			export
+			type Actions = SetClockAction							<--- ***: ⓒ
+
+		- Change "AppState.clock" type with "Date", *NOT* "any
+		- Declare an "action" which is an intersection type like ⓑ
+		- "@clock/setClock" and "payload" member names are the naming convention 
+		  of "type" & "variable" of an Action in Redux Community like ⓑ
+
+	■ Next, write an "action generator" code to create an "action" object of the "SetClockAction" type
+	  in the "src/store/clock/actions.ts" source as follows:
+
+			import type * as T from "./types"
+
+			export
+			// Declare the "Action Generator" to create an "Action" object.	(***)
+			const setClock = (payload: T.State): T.SetClockAction => ({	<--- ***
+				type: "@clock/setClock",								<--- ***
+				// payload: payload
+				payload													<--- ***
+			})
+
+		- In above, the "payload" parameter lets determine "type" in "setClock" action generator (function).
+		  Thus, this prevents an type error from `{ type: "@clock/setClock", payload }` code in advance.
+	  	
+	■ Finally, write code into "src/store/clock/reducers.ts" source as follows:
+
+			import type * as T from "./types"
+
+			const initialState: T.State = new Date()
+
+			export
+			const reducer = (state: T.State = initialState, action: T.Actions) => {
+				switch(action.type) {					<--- ***
+					// If corresponding to the action type, returns "*NEW*" state.	(***)
+					case "@clock/setClock": 			<--- ***
+						return action.payload			<--- ***
+				} // switch
+
+				return state			// Without applying *NO* actions.			(***)
+			} // reducer
+
+		- In previous, the "T.State" type in the "src/store/clock/types.ts" is "Date" type.
+		- According to the corresponding "action type",
+		  returns *NEW* state as "T.State" type
+		  with 2nd. parameter, "action.payload" whose type is "Date".
+
+	■ Example: refer to the "src/pages/ClockTest.tsx" source
+
+		- This display the "AppState" type's "clock" property value to the screen
+		- The "useSelector" custom hook's type variables are set to "<AppState, C.State>".
+		  Thus, extract *ONLY* "clock" from the four(4) member states.
+
+
+06. Making a Counter.
+
+	■ First, implement "src/pages/CounterTest.tsx" source.
+
+	  ○ counter operates plus/subtraction, thus type of counter should be "number"
+
+	  ○ Example: refer to "src/pages/CounterTest.tsx"
+
+	■ Next, write code into "src/store/counter/types.ts" source
+
+	  ○ Declare "State" type as "number"
+	  ○ Declare "SetCounterAction" type with the prefix "@counter/" and named "payload" property
+
+	  ○ Example: refer to "src/store/counter/types.ts"
+	  
+	■ Next, write code into "src/store/counter/actions.ts" source
+
+	  ○ Implement "action generator":
+	  	ⓐ Declare the "setCounter" action of "SetCounterAction" type
+		ⓑ Declare the "increaseCounter" function with "setCounter" action
+		ⓒ Declare the "decreaseCounter" function with "setCounter" action
+
+	  ○ Example: refer to "src/store/counter/actions.ts"
+
+	■ Next, write code to "src/store/counter/reducers.ts" source
+
+	  ○ Implement a "reducer" with "initialState" of "T.State" type.
+	  ○ Current "T.State" type is "number" type in deed
+	  ○ "action.payload" property is used to be an operand of "plus" operator
+
+	  ○ Example: refer to "src/store/counter/reducers.ts"
+
+
+07. Understanding the naming convention with "@name/" prefix and "payload" property
+	When declaring User-definied action type.
+
+	■ As we found out earlier,
+	  The "combineReducers" function composes several "reducers" into *ONE". 	(***)
+
+	■ If inserted actions like "@clock/setClock" and "@counter/setCounter" types
+	  into the reducer combined by "combineReducers" function,
+
+	  ○ These actions might be transfered to all each reducer combined by "combineReducers" function.	<--- ***
+
+	  ○ That is, "@clock/setClock" type's action is transfered to not only the reducer defined 
+	    in "clock/reducers.ts", but also the reducer defined "counter/reducers.ts".
+
+	■ In any reducer declared in App, output the following log with "console.log" method,
+	  You could check all actions that transfered by "dispatch" function from App:						<--- ***
+
+	  export
+	  const reducer = (state: T.State = initialState, action: T.Actions) => {
+			console.log(action)		// output all transfered actions	(***)
+			...
+	  }
+
+	■ Thus, if name of action type is too normal like "setClock", "setCounter" without prefix, 
+	  The name conflict could be occurred unintentionally.
+
+	  ○ Then, a reducer could unintentionally process an action which should *NOT* have to deal with.
+
+	■ The effective way to prevent name conflict about this is to append 
+	  "@name/" prefix to the front of action type's name.												<--- ***
+
+	  ○ Subsequently, it makes clear action target, then prevent name conflict in advance,
+	  	and improve readability.
+
+	■ Additionally, To use the "payload" name is necessary when developing larget scale app.
+
+	  ○ The types of member states of "App-level State" could be changed frequently and comprecatedly.
+	  ○ In the beginning of developing, it's simple types like 'Date', 'number'. 
+	    But in the later state of developing, more properties could be appended complicatedly.
+	  ○ At time like this, the name of each state might be like "clock.clock", "operand.operand" strangely.
+	    On the other hand, if name of state become "payload", it could be more natural 
+		like "payload.clock", "payload.operand".
+
+
+08. The "reducer" must be a Pure function.
+
+	■ The "redux" compares the "past state" stored in the "redux store" 
+	  with "current state" returned by "reducer" function in way of 'if(past_state !== curr_state)'.	<--- ***
+
+	  ○ For this to be possible, current state must copy past state *deeply* inside the "reducer" function.
+	    Because of this, the "reducer" of Redux must be definitely a "Pure" function.					<--- ***
+
+	■ In functional language, the "pure" function must satisfy with the following conditions:			<--- ***
+	  ○ If *NOT* satified with the following conditions, it is called, "Impure" function.	(***)
+	  ○ The case of *NOT* following condition is called, "side-effect".	(***)
+
+	  	ⓐ All input parameters should be immutable.
+		   (That is, it should be *ONLY* used as constant or read-only)
+		ⓑ The function returns immediately a value made inside function body.
+		ⓒ The global or static variables should *NOT* be used in the function body.
+		ⓓ The function should *NOT raise an exception.
+		ⓔ The function is implemented as a callback, or does *NOT* use callback inside.
+		ⓕ There is *NO* code that act aynchronously like "Promise" inside function body.
+
+	  ○ For instance, the following function is a "pure" function:
+	  		const add = (a: number, b: number) => a + b
+
+	■ When implemeting Redux "reducer", the most common mistake is to modify input parameters.			<--- ***
+
+	  ○ The following function is a "impure" function, 
+	  	due to change value of input parameter, "state":
+
+		const impureReducer = (state, action) => {
+			state += action.payload						<--- ***
+			return state
+		}
+
+	  ○ On the other hand, the following code keeps "state" input parameter value.
+	    Thus, the "reducer" is implemented normally as "pure" function:
+
+		const pureReducer = (state, action) => {
+			return state + action.payload				<--- ***
+		}
+
+	■ The following "reducer" modifies "state" input parameter value,
+	  Then it implemented as "impure" function:
+
+	  	const impureReducer2 = (state, action) => {
+			state.name = "jack"							<--- ***
+			return state
+		}
+
+	■ The following "reducer" copies deeply with spread operator,
+	  make new "state" object and change the only "name" property,
+	  Then it implemented normally as "pure" function:
+
+	  	const pureReducer2 = (state, action) => {
+			return {...state, name: "Jack"}				<--- ***
+		}
+
+	■ The following "reducer" changes "state" input parameter value,
+	  it is implemented as "impure" function:
+
+	  	const impureReducer3 = (state, action) => {
+			state.push({name: "jack", age: 32})			<--- ***
+		}
+
+	■ On the other hand, the following "reducer" copy deeply past "state" array,
+	  making new "state" array, and put new item into this new array,
+	  Thus, this implemented normally as "pure" function:
+
+	  	const pureReducer3 = (state, action) => {
+			return [...state, {name: "Jack", age: 32}]	<--- ***
+		}
+
+	■ The following "reducer" changes "state" input parameter,
+	  then it implemented as "impure" function:
+
+	  	const impureReducer4 = (state, action) => {
+			const index = 0
+			state.splice(index, 1)						<--- ***
+			return state
+		}
+
+	■ The following "reducer" with "Array.filter" method 
+	  returns new array which the item of index 0 removed,
+	  thus, it implemented as "pure" function:
+
+	  	const pureReducer4 = (state, action) => {
+			return state.filter((item, index) => index != 0)	<--- ***
+		}
+
+
+09. Making the Feature to Change User Information.
+
+	■ In 04-4, The "fetchRandUser" function which fetch random user Information implemented.
+
+	■ Using 04-4 "FetchTest" component, making new component 
+	  which changes name, email, photo of a user.
+
+	■ Example: refer to "src/pages/RemoteUserTest.tsx" source
+
+	  ○ The core of code is to get user data. 				(***)
+	
+	  ○ In previous, the "reducer" function must be a "pure" function.						<--- ***
+	    To become a "pure" function, There should be no use of "asynchronous" function 
+		acting like "Promise" object.														<--- ***
+
+	  ○ Thus, data like "loading" or "error" which related to the "D.fetchRandUser()" 
+	    should be excluded in the redux-related code. 		(***)
+
+	  ○ Subsequently, Data related to the "remoteUser" member state of "App-level State"
+	    only be the "user".
+
+	  ○ Write the following code into the "src/store/remoteUser/types.ts" as follows:
+
+	  	- "reducer function should be a "pure" function.	(***)
+		  Thus, the "remoteUser" type should become "D.IRandomUser" type.
+
+	  ○ Write code into "src/store/remoteUser/reducer.ts" source.
+
+	    Here, The caveat should *NOT* set initial state value as "undefined" or "null".	(***)
+		Due to this, Each member value of "intialState" sets to empty string('').
+
+	  ○ Write code into "src/store/remoteUser/actions.ts" source.
+
+
+10. Make a User Card.
+
+	■ To make the feature that append/remove user information as a card.
+
+	  ○ If pressing + button, append new card.
+	  ○ If pressing - button, remove a existing card.
+
+	■ Step1. Write code into "src/pages/cards/Card.tsx" source
+	  ○ Please refer to source file
+
+	  ○ The "Card" component have two properties, "card", "onRemove":
+	  	ⓐ card		- Implement screen UI
+		ⓑ onRemove	- onclick event handler to remove this card
+
+	■ Step2. Write code into "src/pages/cards/CardsTest.tsx" source
+	  ○ Please refer to source file
+	
+	■ Step3. Write code into "src/store/cards/types.ts" source
+	  ○ Please refer to source file
+
+	■ Step4. Write code into "src/store/cards/actions.ts" source
+	  ○ Please refer to source file
+	  ○ Define action generator to create an Action to add/remove a card
+
+	■ Step5. Write code into "src/store/cards/reducers.ts" source
+	  ○ Please refer to source file
+
+	  ○ The "reducer" function should be the "pure" function.
+
+	    Thus, creating a new Array with de-structuring assignment sentence in "addCard" action,
+		and creating a new Array with "Array.filter" method comprised of items
+		*NOT* corresponding to the specified "uuid".
+
+
+

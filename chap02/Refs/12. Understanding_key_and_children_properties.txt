@@ -1,0 +1,154 @@
+***************************************************
+* Understanding `key, children` properties        *
+***************************************************
+
+01. All React components have the following properties:                 <--- ***
+    ① key       : Required
+    ② ref       : Required
+    ③ children  : Optional                                             <--- ***
+
+02. The above three properties have the special meanning in React.
+
+03. Configure the `key` property
+    - React framework provides this `key` property to 
+      both `React` components like <p/> and `User-defined` components.  <--- ***
+
+    - Purpose: 
+      If the components which have the same name are used together,
+      React framework makes a `property` to distinguish each component. <--- ***    
+
+    - If using a list or array in the JSX sentences of `render()` method and
+      the key' property with unique id *NOT* defined on each element in the list or array,
+      The following warning occurred:
+            
+        Each child in a list should have a unique "key" prop.           <--- ***
+
+    - The solution of the above warning is the following:
+    
+      Set a `unique id` to the `key` property of an each element in the list (or Array) 
+      to prevent *duplication*.                                         <--- ***
+
+    - Example:
+        import type { JSX } from "react"
+
+        export default
+        function App(): JSX.Element {
+            // 1. Warning : Each child in a list should have a unique "key" prop.   <--- ***
+            // 2. Solution: Set a `unique id` to the `key` property of an each element in the list (or Array)
+            //              to prevent *Duplication*.                               <--- ***
+
+            // const texts = [ <p>Hello</p>, <p>World!!!</p> ]                  // 1. Warning
+            const texts = [ <p key="1">Hello</p>, <p key="2">World!!!</p> ]     // 2. Solution
+
+            return <div>{texts}</div>
+        } // App
+
+    - Definition:
+        (property) React.Attributes.key?: React.Key | null | undefined      // key? -> *Optional*
+
+        // The value of `key` property could be like the following:
+        type Key = 
+            ① string | 
+            ② number | 
+            ③ bigint;
+
+    - How to Configure Unique Id To 'key' property ? 
+      Using "Array.map" method like the following:
+
+      Example:
+
+        export default function App() {
+            const texts = [ "Hello", "World" ].map( 
+                (value, index) => <p key={index}>{value}</p>                        <--- ***
+            )
+
+            return <div>{texts}</div>
+        } // app
+
+
+04. Configure the `children` property
+    - Both `React` components and `User-defined` components can use this property.  <--- ***
+    - This property is *optional*. Thus, the value could not be set.
+
+        * Type:  children?: ReactNode | undefined
+
+    - This property can be used in the `only` components 
+      that can have `child` elements like `<div/>` element.                         <--- ***
+      
+    - On the other hands, This property can't be used in the components
+      that can't have child elements like `<img/>`, `<input/>`.                     <--- ***
+      
+    - Example:
+
+            import type { JSX } from "react"
+
+            export default
+            function App(): JSX.Element {
+                const texts = [ "Hello", "World!!!" ].map( 
+                    (value, index) => <p key={index}>{value}</p>                    <--- ***
+                )
+
+                return <div children={texts} />                                     <--- ***
+            } // App
+
+    - Using `children` property in the `User-defined` component:
+
+        a. User-defined Component
+
+            import type { FC, ReactNode } from "react"
+
+            // type FC<P = {}> = FunctionComponent<P>;
+            // type ReactNode = ReactElement | string | number | ...
+
+            export type PProps = {
+                children?: ReactNode
+            }
+
+            const P: FC<PProps> = (props) => {
+                const { children } = props
+                return <p children={children} />
+            }
+
+            export default P;
+
+        b. The other component which use "User-defined Component".
+
+            import P from "./P"
+
+            export default function App() {
+                const texts = [ "Hello", "World!!!" ].map( (value, index) => <P key={index} children={value} /> )
+                return <div>{texts}</div>
+            }
+
+
+05. JSX { ...props } Sentence.                                                  <--- ***
+    - This sentence plays a role in transfering all properties in `props`
+      to the React component at once like the following:                        <--- ***
+
+      const P: FC<PProps> = (props) => {
+            return <p {...props} />         // Using JSX {...props} sentence
+      }
+
+
+06. `PropsWithChildren` Generic Type & `children` Property.
+    - @until React v17, The `children` property included in the `FC` type.      <--- ***
+
+    - @since React v18, The `children` property excluded in the `FC` type.      <--- ***
+      Besides, React provides generic type, `PropsWithChildren`.                <--- ***
+
+    - `children` property replaced with `PropsWithChildren` Generic Type.       <--- ***
+
+        Example:
+
+            import type { FC, PropsWithChildren, ReactNode } from "react"
+
+
+            // type PropsWithChildren<P = unknown> = P & { children?: ReactNode | undefined };
+            export type PProps2 = {}    // Without `children` property
+            const P: FC<PropsWithChildren<PProps2>> = (props) => {  // OK With `PropsWithChildren` generic type.
+                return <p {...props} />                             // by JSX {...props} sentence
+            }
+
+            export default P;
+
+

@@ -1,0 +1,654 @@
+*******************************************************
+* 05-1. Understanding Base Concept of the "Redux"     *
+*******************************************************
+
+
+01. The following new packages are required to use "Redux".								<--- ***
+	① redux				- Predictable "state container" for JavaScript apps
+						   (JavaScript 앱의 예측 가능한 상태 컨테이너)
+
+	② @refuxjs/toolkit	- The official, opinionated, batteries-included "toolset" for efficient "Redux" development
+	   (for brevity, "RTK") (효율적인 Redux 개발을 위한, 공식적이고, 독선적인, 배터리 포함 도구세트)
+
+	③ react-redux		- Official "React bindings" for Redux
+						   (Redux 를 위한, 공식 React 바인딩)
+
+
+02. Create a React Project
+
+	■ Install all required packages as follows:
+	
+		> npx create-react-app 05_1 --template typescript
+		> npm test
+		> npm i -D @babel/plugin-proposal-private-property-in-object
+		> npm test
+		> npm i chance luxon @fontsource/material-icons @kfonts/d2coding
+		> npm i -D @types/chance @types/luxon
+		> npm i -D postcss autoprefixer tailwindcss daisyui @tailwindcss/line-clamp
+		> npm i redux @reduxjs/toolkit react-redux
+		> npm ls --depth=0
+
+		> npx tailwindcss init -p
+
+	■ Modify "tailwind.config.js" as follows:
+
+		module.exports = {
+			content: [
+				"src/**/*.{js,jsx,ts,tsx}"					<--- *** : Appending
+			],
+			theme: {
+				extend: {},
+			},
+			plugins: [
+				// warn - As of Tailwind CSS v3.3, the `@tailwindcss/line-clamp` plugin is now included by default.
+				// warn - Remove it from the`plugins` array in your configuration to eliminate this warning.
+				// require('@tailwindcss/line-clamp'),		<--- *** : Appending
+
+				require("daisyui")							<--- *** : Appending
+			]
+		}
+
+	■ Modify "tsconfig.json" as follows:
+
+		{
+			"compilerOptions": {
+				... ,
+				"downlevelIteration": true					<--- *** : Appending
+			},
+
+			...,
+
+			"exclude": [									<--- *** : Appending
+				"dist"
+			]
+		}
+
+	■ Append "src/index.css" to use Tailwind CSS framework as follows:
+
+		/* Tailwind @-rules To use Tailwind CSS framework */
+		@tailwind base;
+		@tailwind components;
+		@tailwind utilities;
+		@tailwind variants;
+
+
+		> npm start
+
+		> cp copy/CopyMe.tsx pages/ReduxClock1.tsx
+		> cp copy/CopyMe.tsx pages/ReduxClock2.tsx
+		> cp copy/CopyMe.tsx pages/UseReducerClock.tsx
+
+	■ Edit "src/App.tsx" source as follows:
+
+		import UseReduceClock from "./pages/UseReducerClock.tsx";
+		import ReduxClock2 from "./pages/ReduxClock2.tsx";
+		import ReduxClock1 from "./pages/ReduxClock1.tsx";
+
+
+		export default
+		function App() {
+			return (
+				<main className="p-8">
+					<UseReducerClock />
+					<ReduxClock1 />
+				</main>
+			)
+		} // App
+
+
+03. Redux and Redux-Related Required Packages.
+
+	■ The company, "META"(old, "facebook") annouced the "Flux"
+	  which is the app design standard when annoucing "React".							<--- ***
+
+	■ The "Flux" is the method to implement the "App Level State",
+	  that is, the "state" which shared with several components in way of React.		<--- ***
+
+	■ After "Flux", many open source libraries which follow "Flux" design standard appeared.
+	  The "Redux" is the most used package among the rest.								<--- ***
+
+	■ To use "Redux", must install the following packages:
+		① redux									- un-related with React framework.
+		② @refuxjs/toolkit (for brevity, "RTK") - un-related with React framework.
+		③ react-redux							- related with React framework.
+
+		○ Thus, ① redux	& ② @refuxjs/toolkit(RTK) could be also used with "Angular" and "Vue".
+	  	○ On the other hands, ③ react-redux only could be used with React.			   <--- ***
+	  	○ These all packages are implemented with TypeScript.							<--- ***
+	      So, other "Type libraries" *NOT* needed.
+
+	■ The following shows version of above three "Redux" pacakges in the "package.json" :
+		...,
+		"dependencies": {
+			...
+			"redux": "^5.0.0",						<--- ***
+			"@reduxjs/toolkit": "^2.0.1",			<--- ***: RTK
+			"react-redux": "^9.0.2",				<--- ***: @since 8, must work with React v18 (***)
+			...
+		},
+		...
+
+
+04. Understanding "App-Level States". (For brevity, "App States")
+
+	■ Definition: the "states" for common use shared between "all" React Components.	<--- ***
+
+	■ In 04-3, the "useState" React hook manages the "state"
+	  which *ONE* React component should "keep".										<--- ***
+
+	■ But React has a lot of time to develop in the form of sharing "states"
+	  between several React components.													<--- ***
+
+	  ○ Like this, the "states" shared with all React components is called,
+	    ① "App-level States". For brevity, called, ② "App States"					  <--- ***
+	 
+	■ "Provider" component and its "store" property										<--- ***
+
+	  ○ The "Redux" is a library based on "React Context" investigated in 04-6.			(***)
+
+	  ○ Thus, To use "Redux" features,
+	    The "Provider" component of the "React context" should be located
+		at the top level of a React component.											(***)
+
+	  ○ The "react-redux" package provides the "Provider" component as follows:
+
+	  		import {Provider} from "react-redux"										<--- ***
+
+	  ○ Then, the "Provider" name also be general,
+	    We will use this component with alias name, "ReduxProvider":
+
+			import { Provider as ReduxProvider } from "react-redux"						<--- ***
+
+	  ○ If applying the "ReduxProvider" component to "src/App.tsx" source,
+	    An error that the "store" property value *NOT* configured occurred as follows:
+
+			import {Provider as ReduxProvider} from "react-redux"						<--- ***
+
+			import UseReducerClock from "./pages/UseReducerClock"
+			import ReduxClock1 from "./pages/ReduxClock1"
+
+			export default 
+			function App() {
+				return (
+					// error ts(2741) - 
+					// Property 'store' is missing in type '{ children: Element; }'    
+					// but required in type 'ProviderProps<UnknownAction, unknown>'.	<--- ***
+					<ReduxProvider>			<--- *** : "store" property *NOT* configured.
+						<UseReducerClock />
+						<ReduxClock1 />
+					</ReduxProvider>
+				)
+			} // App
+
+
+05. Understanding "Redux Store", "Reducer" and "Action".
+
+	■ When using the "Redux" features in TypeScript,
+
+	  ① Declare a "User-defined Type" which represents "App-Level States" as follows:
+	  					 				     ----------------------------
+						 								***
+	  		export type AppState = {}													  <--- ***
+
+	  ○ For instance, if making a Clock app, the "AppState" type could be declared as follows :
+
+			export type AppState = {
+				today: Date																  <--- ***
+			}
+
+	■ ② The "Redux Store" is "space"
+		 which stores data of "App States" type defined in ①  							 <--- ***
+	     ----------------------------------------------------
+	  					  	  ***
+
+	■ ③ Then, To create a "Redux Store", You first must know the "Reducer" function.	 <--- ***
+
+	■ The "Reducer" function in "Redux" returns ⓒ new state
+	  created with ⓐ current state & ⓑ action.   									   	<--- ***
+
+	  ○ The "Reducer" function defined as follows:
+
+			import {Reducer} from "redux"
+			
+			type Reducer<S = any, A extends Action = UnknownAction, PreloadedState = S> = (
+				state	: S | PreloadedState | undefined,			<--- *** : ⑴ Crrent State
+				action	: A											<--- *** : ⑵ Action
+			) => S;													<--- *** : ⑶ New State
+
+		⒜ "S": The type of "state" consumed and produced by "reducer".		 	 		(***)
+		⒝ "A": The type of "actions" the "reducer" can potentially respond to.	 		(***)
+		⒞ "PreloadedState": The "type" of "state" consumed by this "reducer"
+							 the "first time" it's called.							 	 (***)
+		⒟ "Action": The ordinary JavaScript object with "type" property. 		 		<--- ***
+					 The term derived from the "flux".
+		-------------
+		⒠ "Action" type should have definitely "type" property.	 						(***)
+
+			type Action<T extends string = string> = {
+				type: T;	// "T" is the type of the action's "type" property
+			};
+
+	■ In summary, To use "Redux" in TypeScript :										 <--- ***
+
+		① Declare a "User-defined Type" which represents "App-Level States"("App States").
+		② You first must know the "Reducer" function to "create" a "Redux Store".		<--- ***
+		   The "Reducer" function returns ⓒ new state
+		   with ⓐ current state and ⓑ action.
+		③ Create a "Redux Store" which stores data of "App-Level States" type declared in ①.
+
+	■ The "configureStore" function in RTK to manage "Store" object:					<--- ***
+
+	  ○  A redux store returned by the "configureStore()" function provided by "RTK".	<--- ***
+
+	  ○  "RTK" (@reduxjs/toolkit) package provides the "configureStore" function
+	     to manage "new state" that "Reducer" function returns as an object, 
+		 called "store".																<--- ***
+
+		 	import {configureStore} from "reduxjs/toolkit"								<--- ***
+
+	  ○ The following is the "configureStore" function definition:
+
+	    According to the definition, the function takes *ONE* argument
+		through "ConfigureStoreOptions" generic type parameter.							<--- ***
+
+			/**
+			* A friendly abstraction over the standard Redux "createStore()" function.
+			*
+			* @param "options" 	The store configuration.
+			* @returns 			A configured Redux store.								<--- ***
+			*/
+								  ***
+			export           ==============
+			declare function configureStore<
+				S = any,
+				A extends Action = UnknownAction,
+				M extends Tuple<Middlewares<S>
+			> = Tuple<[ThunkMiddlewareFor<S>]>, E extends Tuple<Enhancers> = Tuple<[
+					StoreEnhancer<{ dispatch: ExtractDispatchExtensions<M>; }>,
+					StoreEnhancer
+				]>, P = S>(options: ConfigureStoreOptions<S, A, M, E, P>): EnhancedStore<S, A, E>;
+				           =============================================   ======================
+						                       ***                                  ***
+
+			-------------
+                              ****
+			export	  =====================
+			interface ConfigureStoreOptions<S = any, A extends Action = UnknownAction, M extends Tuple<Middlewares<S>> = 
+
+				Tuple<Middlewares<S>>, E extends Tuple<Enhancers> = Tuple<Enhancers>, P = S> {
+					reducer: Reducer<S, A, P> | ReducersMapObject<S, A, P>;					// *Required*
+
+					middleware?: (getDefaultMiddleware: GetDefaultMiddleware<S>) => M;		// Optional
+					devTools?: boolean | DevToolsOptions;									// Optional
+					preloadedState?: P;														// Optional
+					enhancers?: (getDefaultEnhancers: GetDefaultEnhancers<M>) => E;			// Optional
+				}
+
+	■ Action :
+
+		type Action<T extends string = string> = {
+			type: T;
+		}
+		------------------------------------------------------
+		ⓐ An action is a plain object that represents an intention to change the state.
+		ⓑ Actions are the only way to get data into the store.
+		ⓒ Any data, whether from UI events, network callbacks, or other sources such as WebSockets
+		   needs to eventually be dispatched as actions.
+		ⓓ Actions must have a type field that indicates the type of action being performed.
+		ⓔ Types can be defined as constants and imported from another module.
+		ⓕ These must be strings, as strings are serializable.
+		ⓖ Other than type, the structure of an action object is really up to you.
+		--------------------------------------------------------
+		ⓐ 액션은 상태를 변경하려는 의도를 나타내는 일반객체입니다.
+		ⓑ 액션은 데이터를 스토어로 가져오는 유일한 방법입니다.
+		ⓒ UI 이벤트, 네트워크 콜백 또는 WebSocket과 같은 기타 소스의 모든 데이터는 결국,
+		   액션으로 전달되어야 합니다.
+		ⓓ 액션에는 수행중인 작업유형을 나타내는 유형(type) 필드가 있어야 합니다.
+		ⓔ 유형(type)은 상수로 정의하고, 다른 모듈에서 가져올 수 있습니다.
+		ⓕ 유형(type)은 직렬화 가능하므로 문자열이어야 합니다.
+		ⓖ 유형(type) 외에, 액션개체의 구조는 실제로 사용자에게 달려 있습니다.
+
+
+06. Example: implementing a Clock with "Redux". (Initial Implementation)
+
+	Please refer to the "src/App.tsx" called, "default app".
+
+
+07. Dividing default app.
+
+	■ For reference, React community have a convention
+	  that all files related to the "Redux" save into named "store" directory.			(***)
+
+	■ Make the following directories and files, according the above convention:
+
+		> mkdir src/store
+		> cd src/store
+		> touch index.ts AppState.ts rootReducer.ts useStore.ts
+
+	■ Move "AppState" type defined in the "src/App.tsx" into "src/store/AppState.ts"
+
+	■ Move "rootReducer" type defined in the "src/App.tsx" into "src/store/rootReducer.ts"
+
+	■ The code related to the "configureStore" function implements
+	  the "useStore" custom hook with "useMemo" React hook.								(***)
+
+
+08. Using the "useSelector" React Hook.
+
+	■ The React hook for "Redux" provided by "react-redux" package.	(***)
+
+	■ Returns "state value" in the "store"
+	  to check which values persisted in the "Redux Store".			<--- ***
+
+	■ Import "useSelector" React hook as follows:
+
+		import { useSelector } from "react-redux"					<--- ***
+
+	■ The "useSelector" React hook is the generic function implemented as follows:
+
+		export
+		function useSelector<TState, TSelected>(
+			selector: (state: TState) => TSelected
+		): TSelected
+
+	■ The following code is to get "today" property value of "AppState" type 
+	  with "useSelector" React hook:								<--- ***
+
+	  	const today = useSelector<AppState, Date>( state => state.today )
+
+	■ Example:
+	
+		- In 04-1, copy "src/pages/Clock.tsx" into "src/pages/ReduxClock1.tsx" in 05-1
+
+		- Apply the "useSelector" React hook
+
+		- Due to getting the "today" property value with "useSelector" React hook,
+		  The "today" is *NOT* implemented as a component property any more.
+
+		- Please refer to "src/pages/ReduxClock1.tsx" source.
+
+
+09. Understanding "Redux Action".
+
+	■ To act as a Clock normally, The "ReduxClock1" component implemented earlier should
+	  change the "today" property value in the "Redux Store" with the current time.			(***)
+
+	■ At the same time, the changed "today" value should be applied into the screen
+	  with re-rendering the "ReduxClock1" component.											(***)
+
+	  							   	[  Redux Store 	]
+								-------------------------
+								{
+									today: Date,		<-- *** : ① Need to change value
+
+									// Other members
+									...
+								}
+								-------------------------
+											│
+											│	<---------- *** : ② Re-rendering needed,
+											│			   		  	 due to the changing "today" value.
+											▼
+									[   ReduxClock1   ]
+
+							※ Re-rendering needed, 
+							  due to change of data in the "Redux Store".
+
+	■ The "ReduxClock1" component has *ONLY* named "today" property in the "Redux Store".
+	  But other properties in "Redux Store" could be existed different ways.				(***)
+
+	  And the code that makes a clock should *ONLY* change the "today" property,
+	  excluding other properties in "Redux Store".											(***)
+
+	■ The "Action" in the "Redux" is the method to change value of the specified property
+	  (here, "today") defined in the "Redux Store".											<--- ***
+
+	■ Execute the following commands:
+
+		> touch src/store/actions.ts
+
+	■ Write code into the "src/store/actions.ts" as follows 
+	  to define an "action" to change current date:
+
+		export
+		type SetTodayAction = {
+			today: Date							<--- ***
+		}
+
+	■ But "Redux Action" should have definitely the named "type" property.					<--- ***
+
+	  The following code is to append "type" property into "SetTodayAction" type
+	  with TypeScript "Intersection Type" statement as follows :
+
+		/**
+		* -------------------------------------------------
+		* import {Action} from "redux"
+		* -------------------------------------------------
+		* type Action<T extends string = string> = { type: T; };
+		* -------------------------------------------------
+		* An *action* is a plain object that represents an intention to change the
+		* state. Actions are the only way to get data into the store. Any data,
+		* whether from UI events, network callbacks, or other sources such as
+		* WebSockets needs to eventually be dispatched as actions.
+		* Actions must have a "type" field that indicates the type of action being
+		* performed. Types can be defined as constants and imported from another
+		* module. These must be strings, as strings are serializable.
+		* Other than "type", the structure of an action object is really up to you.
+		* -------------------------------------------------
+		* *액션*은 상태를 변경하려는 의도를 나타내는 일반객체입니다.					<--- ***
+		* 액션은 데이터를 저장소로 가져오는 유일한 방법입니다.							<--- ***
+		* UI 이벤트, 네트워크 콜백 또는 WebSocket과 같은,
+		* 기타소스의 모든 데이터는, 결국 액션(Actions)으로 전달되어야 합니다.			<--- ***
+		* 액션(Actions)에는 수행중인 작업유형을 나타내는 "type" 필드가 있어야 합니다.	<--- ***
+		* 유형(Types)은 상수로 정의하고, 다른 모듈에서 가져올 수 있습니다.				<--- ***
+		* 문자열은 직렬화 가능하므로, 유형(Types)은 문자열이어야 합니다.
+		* "type" 외에, 액션(action) 개체의 구조는 실제로 사용자에게 달려 있습니다.		<--- ***
+		* -------------------------------------------------
+		* @template T 	- the type of the action's "type" tag.
+		* -------------------------------------------------
+		*/
+							   ***   "And" logical operator
+		export				 ------- ---
+		type SetTodayAction = Action  &  {		<--- ***
+			today: Date							<--- ***
+		}
+		
+	■ "Reducer" function in "Redux" returns ⓒ new state
+	  created with ⓐ current state & ⓑ action.										  <--- ***
+
+	  ○ You must know the "Reducer" function to create a "Redux Store".	(***)
+	  ○ The "Reducer" function returns ⓒ new state created using ⓐ current state and ⓑ action.
+	  ○ "RTK" (@reduxjs/toolkit) package provides the "configureStore" function
+	    which manages "new state" that "Reducer" function returns as an object, called "Store".
+
+	■ The "type" property of an "Action" is used to furcate properly with "switch ~ case" statement, 
+	  according to the "type" property:													
+
+		const rootReducer = (state: AppState=initialState, action: Action): AppState => {
+			switch(action.type) {	<--- ***
+
+				// Returns *NEW* state applied when "Action_Type1".
+				case "Action_Type1":	return {...state}	// Deep Copy with Spread Operator
+
+				// Returns *NEW* state applied when "Action_Type2".
+				case "Action_Type2":	return {...state}	// Deep Copy with Spread Operator
+
+			} // switch
+
+			return state
+		} // rootReducer
+
+	■ Like this, The "type" property of an "Action" lets implment the "Reducer", 
+	  Thus, The type of "type" property could be determined by 'setToday' string as follows:
+
+		import type { Action } from "redux"
+
+									    ****
+		export                       ----------
+		type SetTodayAction = Action<"setToday"> & {
+			today: Date
+		}
+
+		export 
+		type Actions = SetTodayAction
+
+
+10. Understanding "Redux Reducer".
+
+	■ "Reducer" means that composing two objects, "prevState" and "action",
+	  and then reduce them with *ONE* "newState".											<--- ***: ⓐ
+
+	■ The purpose of "Reducer" function that returns new state("newState")
+	  based on the past state("prevState) of the 1st. parameter is clear.					<--- ***: ⓑ
+
+	■ In previous, "src/store/rootReducer1.ts", change *ONLY* variable name 
+	  and apply previous "Action" code as follows:
+
+	  	Please refer to "src/store/actions.ts" source.
+	  	Please refer to "src/store/useStore.ts" source.
+	  	Please refer to "src/store/rootReducer2.ts" source.
+
+	■ Next, Apply the previous, "SetTodayAction", 
+	  and make clear the relationship with "Action" & "Reducer":
+
+	  Then, When implementing "Reducer" in the "Redux", 
+	  instead of the terms of "prevState", "newState", just use named "state" in general.	(***)
+
+
+11. Using "useDispatch" React Hook.
+
+	■ Import "useDispatch" React hook
+
+		import { useDispatch } from "react-redux";			// ***
+
+	■ Invoking "useDispatch" hook, it could get the "dispatch()" function.					<--- ***
+
+		const dispatch = useDispatch()						// ***
+
+	■ Using "dispatch()" function,
+	  It's possible to change "All" or "Partial" members stored in "Redux Store".			<--- ***: ⓐ
+
+	■ Using "dispatch()" function, 
+	  dispatch an *action* which "type" property value sets to "setToday"
+	  to the "Redux Store":																	<--- ***: ⓑ
+
+								* Action *
+					-------------------------------------
+		dispatch( {type: 'setToday', today: new Date()} )	// ***
+
+
+12. Understanding relationship between two functions: "dispatch" and "Reducer", 
+
+	■ Until now, we checked ① Redux Store ② Reducer ③ Action  ④ dispatch function.
+
+	  ○ If representing relationship between them, as follows:
+
+							  *action*                    change 
+							  							  states
+		[ dispatch(action) ] ----------> [   Reducer   ] ----------> [  Redux Store  ]		<--- ***: ⓐ
+
+	  ○ The above relation means that first, making an *action* required
+	  	to change partial properties of "App-level States" stored in the "Redux Store".		<--- ***: ⓑ
+
+	  ○ Next, the created *action* should be definitely transfered
+	    by "dispatch" function to the "Redux Store" .										<--- ***: ⓒ
+
+	  ○ And the "Reducer" is involved during the "action" is being transfered.				<--- ***: ⓓ
+
+	■ The following shows that how to create two parameters, "state" & "action"
+	  that are transfered to the "Reducer":
+							   
+							 ① created by "Redux Store".
+							 -----
+			function reducer(state, action)
+									------
+									② created by "dispatch(action)" function.
+
+	  ○ The purpose of "Redux Store" is to persist the "App-Level States".	(***)
+
+	    Thus, the "Redux Store" could make the 1st. parameter, "state". 	(***)
+
+	  ○ The "action" definitely transfered by "dispatch" function.			(***)
+
+	    When executing "dispatch(action)" code, 
+		The 2nd. parameter, "action" transfered to the "Reducer".			(***)
+
+
+13. Completing the Clock.
+
+	■ Now, ① invoking the "useDispatch" React hook to return "dispatch" function,
+	  ② getting "dispatch" function, and then, ③ executing the "dispatch(action)" per second,
+	  Lastly, ④ the clock will be completed.
+
+	  ○ Write code in "src/pages/ReduxClock2.tsx" source.
+
+	  ○ In way of using "useInterval" custom hook defined In previous 04-1 
+	    to transfer current date to the "rootReducer", the clock will be completed.
+
+	■ Example: refer to the "src/pages/ReduxClock2.tsx" source.
+
+
+14. Using the "useReducer" React Hook.
+
+	■ As the name suggests, the "useReducer" hook has the same function as "Redux Reducer".	<--- ***
+
+	■ The "useReducer" hook would be used *without* "context" like "ReduxProvider",
+	  such as other React hook functions.
+
+	  For this reason, The "state" of "Redux" could be accessed from all components in App.(that is, "Global State")
+
+	  The "state" of "useReducer" React hook could be *ONLY* valid in the component
+	  which invokes "useReducer" hook like other hook functions.  (that is, "Local State")
+
+	  This is the difference between them.
+
+	■ Import "useReducer" React hook from "react" package:
+
+		import React, {useReducer} from "react";
+
+	■ Using "useReducer" React hook, 
+	  Making code of invoking "useState" and "useCallback" React hooks several times concisely.	(***)
+
+	■ The usage of "useReducer" React hook:
+
+		const [ state, dispatch ] = useReducer(reducer, initialStateValue)						<--- ***
+
+	■ There is the difference between Redux Reducer and "useReducer" hook
+	  to configure initial state value.	(***)
+
+	  In Redux Reducer, set default value into the 1st. parameter of Reducer as follows:
+
+	  		const initialState: AppState = {													<--- ***
+				today: new Date()
+			}
+                                                      ***
+			export				 ------------------------------
+			const rootReducer = (state: AppState = initialState, action: AppActions) => {}		<--- ***
+
+	  On the other hands, in "useReducer" React hook,
+	  set initial value to 2nd. parameter as follows :
+	  																		***
+																	 -------------------
+	  		useReducer( (state: AppState, action: AppActions) => {}, {today: new Date()} )		<--- ***
+
+	■ Example:
+
+		refer to "src/pages/UseReducerClock.tsx" source.
+
+		This example act equally as "src/pages/ReduxClock2.tsx" source.
+
+
+15. Create files related with Redux into "src/copy/store" directory.
+
+	Please refer to "src/copy/store/index.ts, AppState.ts, rootReducer.ts, useStore.ts"
+
+
+16. Create files related with Redux into "src/copy/store/copy" directory.
+
+	Please refer to "src/copy/store/copy/index.ts, actions.ts, reducers.ts"
+
+
+
+
+
+

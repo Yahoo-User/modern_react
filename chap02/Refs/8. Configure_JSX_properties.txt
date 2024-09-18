@@ -1,0 +1,79 @@
+*************************************
+* Configure JSX Properties in React *
+*************************************
+
+01. JSX is XML
+    - So, All properties must be enclosed with `single` quotation('').  <--- ***
+    - In XML, All properties are `string` type.                         <--- ***
+    
+    - Example:    <Person name='Jack' />
+
+    - Each property are called, `attribute` in XML.
+      And `property` called in programming languages like TypeScript.
+
+
+02. JSX extends XML
+    - Thus, The `string` type property have a value enclosed with single quotation('')
+      But, the `number` type property like `age` is *NOT* string,
+      so must be enclosed with symbol, `{}`.                            <--- ***
+
+      Example:    <Person name='jack' age={23} />
+
+    - If the `value` of a property is an `object literal`, *NO* string,
+      use symbol, `{}` to enclose the `object literal` value.           <--- ***
+      
+      An object literal itself also have symbol, `{}`.                  <--- ***
+      Outer `{}` is JSX sentence and Inner `{}` is an `object literal`. <--- ***
+
+      Example:    <Person person={ { name: "Yoseph", age: 23 } } />
+
+
+03. Implementing `properties` In The `Class Type` Component
+    - In previous, How to use the `properties` which transfered from the `parent` component
+      in the `child` component ?
+
+      Example:
+
+        <ClassComponent href="http://www.google.com" text="Go to Google" />
+
+    - In React, There is *NO* method to know the properties is valid.   <--- ***
+
+    - Thus, It's' *required* to make & transfer the `Properties Object`
+      like `Props` which have the `name` and `type` of `each property` 
+      to the `React.Component` type.                                    <--- ***
+
+    - In previous, There is a type constraint that the properties of
+      a component must be an object type: "<P extends {}>".
+
+      Example:
+
+        import { Component } from "react"
+
+        type ClassComponentProps = {                                    <--- ***
+          href: string
+          text: string
+        }
+
+        export default
+        class ClassComponent extends Component<ClassComponentProps> {
+          render() { return null }
+        } // end class
+
+      If a class type component is implemented like the above,
+      All properties transfered could be used like "this.props"
+      in the component.                                                 <--- ***
+
+    - For reference, the `parent` type, "Component" of all the `class` component
+      provides the property named, "props".                             <--- ***
+
+      Example:                                                ***
+                                                            --------
+        export default class ClassComponent extends Component<Props> {
+            render() {
+              const href = this.props.href
+              const text = this.props.text
+
+              return null
+            } // render
+        } // end class
+

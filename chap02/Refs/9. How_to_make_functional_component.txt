@@ -1,0 +1,65 @@
+*************************************
+* How To Make Functional Component  *
+*************************************
+
+1. Here is the very simple Class Type Component:
+    - Example:
+
+        export default class App extends Component {
+            render() {
+                return <h1>Hello, World</h1>
+            }
+        } // end class
+
+    - In deed, The meaningful section of the above is only `render` method.
+      The rest code is a *boilerplate*.
+
+    - In React Team, The `render` method section in the Class type component
+      could be made of a simple function.                                       <--- ***
+
+      This function called, "Functonal Component".                              <--- ***
+
+2. The best advantage of the Functional Component is that
+   there is no boilerplate and it makes more simple component.                  <--- ***
+
+    - Example:
+
+        export default function App() {
+            return <h1>Hello, World</h1>
+        } // App
+
+3. There are two type of the sentence to make a function:
+        ① With `function` keyword
+        ② With Arrow Function
+
+    - React Team accepts the above all 2 ways to make a React component.        <--- ***
+
+4. 1st. method to make a Functional Component.
+    - A Class Component plays a role in creating & transfering `virtual DOM`
+      through `render` method.                                                  <--- ***
+    - A Functional Component also plays a role in 
+      creating & transfering virtual DOM.                                       <--- ***
+
+    - The following code is to make a Functional Component by `function` keyword,
+      and return <div> virtual DOM element created by JSX sentence:
+
+      Example:
+
+            export default function App() {
+                return <div>Hello, function-keyword component !</div>
+            } // App
+
+5. 2nd. method to make a Functional Component.
+    - The arrow function is an *anonymous* function.                            <--- ***
+    - Caution:
+      `export default` keyword could *NOT* be attached to the arrow function.   <--- ***
+
+    - Example:
+
+        const App = () => {
+            return <h1>fuctional component</h1>
+        } // App
+
+        export default App;
+
+        
